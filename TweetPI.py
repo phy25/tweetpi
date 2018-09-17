@@ -86,9 +86,16 @@ class PhotoList:
         if source:
             self.source = source
 
-    def download_all(self):
+    def download_all(self, shell=False):
+        if shell:
+            print("{} items to be downloaded".format(len(self.l)))
         for p in self.l:
-            p.download()
+            res = p.download()
+            if shell:
+                if res:
+                    print("Downloaded: {}".format(p.remote_url))
+                else:
+                    print("Failed: {}".format(p.remote_url))
 
     def generate_video(self, name, output_format):
         fullpath = ""
@@ -125,11 +132,11 @@ def shell_list(args):
         print(t)
 
 def shell_download(args):
-    tpi = TweetPI({})
+    tpi = shell_init_lib(args)
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            photolist.download_all()
+            photolist.download_all(shell=True)
         else:
             sys.exit(1)
     except Exception as e:
@@ -181,6 +188,7 @@ def main(argv=None):
     parser_download = subparsers.add_parser('download', help='download images in Twitter feed')
     parser_download.add_argument('--timeline', required=True, help="from someone's timeline")
     parser_download.add_argument('--limit', help="tweets limit")
+    parser_download.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_download.set_defaults(func=shell_download)
 
     parser_video = subparsers.add_parser('video', help='generate a video from images in Twitter feed')
