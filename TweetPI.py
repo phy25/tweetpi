@@ -1,16 +1,42 @@
 #!/usr/bin/env python
 """
 Module TweetPI, by @phy25
+
+@deps tweepy
 """
 
 import sys
+import tweepy
+import json
 
 class TweetPI:
+    twitter_consumer_key = None
+    twitter_consumer_secret = None
+    twitter_access_token = None
+    twitter_access_secret = None
     def __init__(self, options):
-        pass
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret"]
+        if type(options) == dict:
+            for k in keys:
+                if k in options:
+                    self.__setattr__(k, options[k])
 
     def get_timeline(self, username, page, limit):
-        return PhotoList(list=list(), source="timeline")
+        auth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
+        auth.set_access_token(self.twitter_access_token, self.twitter_access_secret)
+
+        api = tweepy.API(auth)
+
+        tweets = api.user_timeline(id=username, count=limit, page=page)
+        photos = []
+        for tweet in tweets:
+            try:
+                for m in tweet.extended_entities.media:
+                    if m.type == 'photo':
+                        photos.append(m)
+            except AttributeError:
+                pass
+        return PhotoList(list=photos, source="timeline")
 
 class Photo:
     local_folder = None
@@ -28,6 +54,7 @@ class PhotoList:
     l = list()
     source = ""
     def __init__(self, list, source=""):
+        refined_list = []
         self.l = list
         if source:
             self.source = source
@@ -46,8 +73,18 @@ class PhotoList:
     def get_list(self):
         return self.l
 
+def shell_init_lib(args):
+    o = {}
+    try:
+        if 'options' in args:
+            o = json.loads(args.options)
+    except Exception:
+        raise
+    tpi = TweetPI(o)
+    return tpi
+
 def shell_list(args):
-    tpi = TweetPI({})
+    tpi = shell_init_lib(args)
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
@@ -111,6 +148,7 @@ def main(argv=None):
     parser_list = subparsers.add_parser('list', help='list images in Twitter feed')
     parser_list.add_argument('--timeline', required=True, help="from someone's timeline")
     parser_list.add_argument('--limit', help="tweets limit")
+    parser_list.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_list.set_defaults(func=shell_list)
 
     parser_download = subparsers.add_parser('download', help='download images in Twitter feed')
