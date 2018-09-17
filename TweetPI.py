@@ -8,6 +8,7 @@ Module TweetPI, by @phy25
 import sys
 import tweepy
 import json
+import collections
 
 class TweetPI:
     twitter_consumer_key = None
@@ -31,21 +32,46 @@ class TweetPI:
         photos = []
         for tweet in tweets:
             try:
-                for m in tweet.extended_entities.media:
-                    if m.type == 'photo':
-                        photos.append(m)
+                for m in tweet.extended_entities['media']:
+                    if m['type'] == 'photo':
+                        photos.append(Photo(local_folder=None, tweet_json=m))
             except AttributeError:
                 pass
+
         return PhotoList(list=photos, source="timeline")
 
-class Photo:
+# Thanks to https://stackoverflow.com/a/2704866/4073795
+class Photo(collections.Mapping):
+    '''
+    Inmutable, hashable
+    '''
     local_folder = None
     remote_url = ""
     local_path = None
+    tweet_json = None
     def __init__(self, local_folder, tweet_json = None):
         self.local_folder = local_folder
         if tweet_json:
-            self.remote_url = tweet_json
+            if 'id' in tweet_json:
+                self.tweet_json = tweet_json
+                self.remote_url = tweet_json['media_url_https']
+            else:
+                raise Exception('Media json should contain id')
+
+    def __iter__(self):
+        return iter(self.tweet_json)
+
+    def __len__(self):
+        return len(self.tweet_json)
+
+    def __getitem__(self, key):
+        return self.tweet_json[key]
+
+    def __hash__(self):
+        return self.tweet_json['id']
+
+    def __str__(self):
+        return self.tweet_json.__str__()
 
     def download(self):
         return False
@@ -54,8 +80,9 @@ class PhotoList:
     l = list()
     source = ""
     def __init__(self, list, source=""):
-        refined_list = []
-        self.l = list
+        refined_list = [o for o in set(list)]
+        # unique things
+        self.l = refined_list
         if source:
             self.source = source
 
