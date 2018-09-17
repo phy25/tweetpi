@@ -65,7 +65,7 @@ def shell_download(args):
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photlist.download_all()
+            photolist.download_all()
         else:
             sys.exit(1)
     except Exception as e:
@@ -73,11 +73,32 @@ def shell_download(args):
         sys.exit(2)
 
 def shell_video(args):
-    pass
+    tpi = TweetPI({})
+    try:
+        if 'timeline' in args:
+            photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
+            result = photolist.generate_video(name=None, output_format=None)
+            print(result)
+        else:
+            sys.exit(1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        sys.exit(2)
 
 def shell_annotate(args):
-    pass
+    tpi = TweetPI({})
+    try:
+        if 'timeline' in args:
+            photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
+            result = photolist.get_annotations()
+        else:
+            sys.exit(1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        sys.exit(2)
 
+    for t in result:
+        print(t)
 
 def main(argv=None):
     import argparse
