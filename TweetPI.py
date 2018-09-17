@@ -5,18 +5,22 @@ Module TweetPI, by @phy25
 @deps tweepy
 """
 
-import sys
+import sys, os
 import tweepy
 import json
 import collections
+
+import urllib.request
+import shutil
 
 class TweetPI:
     twitter_consumer_key = None
     twitter_consumer_secret = None
     twitter_access_token = None
     twitter_access_secret = None
+    local_folder = None
     def __init__(self, options):
-        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret"]
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "local_folder"]
         if type(options) == dict:
             for k in keys:
                 if k in options:
@@ -34,7 +38,7 @@ class TweetPI:
             try:
                 for m in tweet.extended_entities['media']:
                     if m['type'] == 'photo':
-                        photos.append(Photo(local_folder=None, tweet_json=m))
+                        photos.append(Photo(local_folder=self.local_folder, tweet_json=m))
             except AttributeError:
                 pass
 
@@ -51,6 +55,8 @@ class Photo(collections.Mapping):
     tweet_json = None
     def __init__(self, local_folder, tweet_json = None):
         self.local_folder = local_folder
+        if not self.local_folder:
+           self. local_folder = ""
         if tweet_json:
             if 'id' in tweet_json:
                 self.tweet_json = tweet_json
@@ -74,7 +80,14 @@ class Photo(collections.Mapping):
         return self.tweet_json.__str__()
 
     def download(self):
-        return False
+        if not self.remote_url:
+            raise Exception("No download URL specified")
+        # https://stackoverflow.com/a/7244263/4073795
+        with urllib.request.urlopen(self.remote_url) as response, open(os.path.join(self.local_folder, os.path.basename(self.remote_url)), 'wb') as out_file:
+            if response.getcode() == 200:
+                shutil.copyfileobj(response, out_file)
+            else:
+                raise Exception("Image download with wrong HTTP code: "+response.getcode())
 
 class PhotoList:
     l = list()
@@ -87,15 +100,18 @@ class PhotoList:
             self.source = source
 
     def download_all(self, shell=False):
+        completed = 0
+        total = len(self.l)
         if shell:
-            print("{} items to be downloaded".format(len(self.l)))
+            print("{} items to be downloaded".format(total))
         for p in self.l:
-            res = p.download()
-            if shell:
-                if res:
-                    print("Downloaded: {}".format(p.remote_url))
-                else:
-                    print("Failed: {}".format(p.remote_url))
+            completed += 1
+            try:
+                res = p.download()
+                if shell:
+                    print("({}/{}) Downloaded: {}".format(completed, total, p.remote_url))
+            except Exception:
+                print("({}/{}) Failed: {}".format(completed, total, p.remote_url))
 
     def generate_video(self, name, output_format):
         fullpath = ""
