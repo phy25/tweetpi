@@ -6,12 +6,15 @@ Module TweetPI, by @phy25
 """
 
 import sys, os
-import tweepy
 import json
 import collections
 
 import urllib.request
 import shutil
+
+import tweepy
+from PIL import Image
+import tempfile
 
 class TweetPI:
     twitter_consumer_key = None
@@ -26,7 +29,7 @@ class TweetPI:
                 if k in options:
                     self.__setattr__(k, options[k])
 
-    def get_timeline(self, username, page, limit):
+    def get_timeline(self, username, page, limit, order_latest=False):
         auth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
         auth.set_access_token(self.twitter_access_token, self.twitter_access_secret)
 
@@ -34,6 +37,8 @@ class TweetPI:
 
         tweets = api.user_timeline(id=username, count=limit, page=page)
         photos = []
+        if not order_latest:
+            tweets = reversed(tweets)
         for tweet in tweets:
             try:
                 for m in tweet.extended_entities['media']:
@@ -79,15 +84,52 @@ class Photo(collections.Mapping):
     def __str__(self):
         return self.tweet_json.__str__()
 
-    def download(self):
+    def download(self, force=False):
         if not self.remote_url:
             raise Exception("No download URL specified")
+        local_path = os.path.join(self.local_folder, os.path.basename(self.remote_url))
+        if os.path.isfile(local_path) and not force:
+            self.local_path = local_path
+            return
         # https://stackoverflow.com/a/7244263/4073795
-        with urllib.request.urlopen(self.remote_url) as response, open(os.path.join(self.local_folder, os.path.basename(self.remote_url)), 'wb') as out_file:
+        with urllib.request.urlopen(self.remote_url) as response, open(local_path, 'wb') as out_file:
             if response.getcode() == 200:
-                shutil.copyfileobj(response, out_file)
+                try:
+                    shutil.copyfileobj(response, out_file)
+                    self.local_path = local_path
+                except Exception:
+                    os.unlink(local_path)
+                    raise
             else:
                 raise Exception("Image download with wrong HTTP code: "+response.getcode())
+
+class LocalPhoto:
+    local_path = ""
+    PILim = None
+    def __init__(self, local_path):
+        self.local_path = local_path
+
+    def resize(self, width=1280, height=720, fill_color=(0, 0, 0)):
+        if not self.PILim:
+            self.PILim = Image.open(self.local_path)
+        x, y = self.PILim.size
+        final_x, final_y = width, height
+        if x/y > width/height:
+            # too long
+            final_y = round(y*(width/x))
+        else:
+            final_x = round(x*(height/y))
+        resized_im = self.PILim.resize((final_x, final_y), Image.LANCZOS)
+        new_im = Image.new('RGB', (width, height), fill_color)
+        new_im.paste(resized_im, (round((width - final_x) / 2), round((height - final_y) / 2)))
+        resized_im = None
+        return new_im
+
+    def resize_to_temp(self, width=1280, height=720, fill_color=(0, 0, 0, 0)):
+        im = self.resize(width=width, height=height, fill_color=fill_color)
+        name = os.path.join('temp/', os.path.basename(self.local_path))
+        im.save(name)
+        return name
 
 class PhotoList:
     l = list()
@@ -99,21 +141,32 @@ class PhotoList:
         if source:
             self.source = source
 
-    def download_all(self, shell=False):
+    def download_all(self, shell=False, force=True):
         completed = 0
+        successful = True
         total = len(self.l)
         if shell:
             print("{} items to be downloaded".format(total))
         for p in self.l:
             completed += 1
             try:
-                res = p.download()
+                res = p.download(force=force)
                 if shell:
                     print("({}/{}) Downloaded: {}".format(completed, total, p.remote_url))
             except Exception:
                 print("({}/{}) Failed: {}".format(completed, total, p.remote_url))
+                successful = False
+        return successful
 
-    def generate_video(self, name, output_format):
+    def generate_video(self, name, output_format, shell=False):
+        d = self.download_all(shell=shell, force=False)
+        if not d:
+            return False
+        for p in self.l:
+            lp = LocalPhoto(local_path=p.local_path)
+            temp_path = lp.resize_to_temp()
+            print(temp_path)
+        # ffmpeg -f concat -i ffmpeg.txt -pix_fmt yuv420p -video_size 1280x720 output.mp4
         fullpath = ""
         return fullpath
 
@@ -160,17 +213,18 @@ def shell_download(args):
         sys.exit(2)
 
 def shell_video(args):
-    tpi = TweetPI({})
+    tpi = shell_init_lib(args)
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_video(name=None, output_format=None)
+            result = photolist.generate_video(name="test", output_format="test")
             print(result)
         else:
             sys.exit(1)
     except Exception as e:
-        print(e, file=sys.stderr)
-        sys.exit(2)
+        raise
+        #print(e, file=sys.stderr)
+        #sys.exit(2)
 
 def shell_annotate(args):
     tpi = TweetPI({})
@@ -210,6 +264,7 @@ def main(argv=None):
     parser_video = subparsers.add_parser('video', help='generate a video from images in Twitter feed')
     parser_video.add_argument('--timeline', required=True, help="from someone's timeline")
     parser_video.add_argument('--limit', help="tweets limit")
+    parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_video.set_defaults(func=shell_video)
 
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
