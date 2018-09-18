@@ -8,6 +8,7 @@ Module TweetPI, by @phy25
 import sys, os
 import json
 import collections
+import subprocess
 
 import urllib.request
 import shutil
@@ -47,7 +48,7 @@ class TweetPI:
             except AttributeError:
                 pass
 
-        return PhotoList(list=photos, source="timeline")
+        return PhotoList(list=photos, source="timeline-"+username)
 
 # Thanks to https://stackoverflow.com/a/2704866/4073795
 class Photo(collections.Mapping):
@@ -127,13 +128,13 @@ class LocalPhoto:
 
     def resize_to_temp(self, width=1280, height=720, fill_color=(0, 0, 0, 0)):
         im = self.resize(width=width, height=height, fill_color=fill_color)
-        name = os.path.join('temp/', os.path.basename(self.local_path))
+        name = os.path.join(tempfile.gettempdir(), os.path.basename(self.local_path))
         im.save(name)
         return name
 
 class PhotoList:
     l = list()
-    source = ""
+    source = "unknown"
     def __init__(self, list, source=""):
         refined_list = [o for o in set(list)]
         # unique things
@@ -158,16 +159,37 @@ class PhotoList:
                 successful = False
         return successful
 
-    def generate_video(self, name, output_format, shell=False):
+    def generate_video(self, name=None, size="1280x720", shell=False):
+        if not name:
+            name = self.source+".mp4"
+        fullpath = os.path.abspath(name)
         d = self.download_all(shell=shell, force=False)
         if not d:
             return False
+        files = []
         for p in self.l:
             lp = LocalPhoto(local_path=p.local_path)
             temp_path = lp.resize_to_temp()
-            print(temp_path)
-        # ffmpeg -f concat -i ffmpeg.txt -pix_fmt yuv420p -video_size 1280x720 output.mp4
-        fullpath = ""
+            files.append(temp_path)
+
+        # generate concat files
+        concat_path = os.path.join(tempfile.gettempdir(), name+".txt")
+        with open(concat_path, "w") as concat_file:
+            for f in files:
+                concat_file.write("file '{}'\n".format(f))
+                concat_file.write("duration 3\n")
+        # run
+        try:
+            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            print(e.stderr.decode('utf-8'))
+            raise
+        finally:
+            # unlink temp files
+            #os.unlink(concat_path)
+            for f in files:
+                os.unlink(f)
+
         return fullpath
 
     def get_annotations(self):
@@ -217,7 +239,7 @@ def shell_video(args):
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_video(name="test", output_format="test")
+            result = photolist.generate_video()
             print(result)
         else:
             sys.exit(1)
