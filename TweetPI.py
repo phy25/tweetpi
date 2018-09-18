@@ -39,7 +39,7 @@ class TweetPI:
         tweets = api.user_timeline(id=username, count=limit, page=page)
         photos = []
         if not order_latest:
-            tweets = reversed(tweets)
+            tweets.reverse()
         for tweet in tweets:
             try:
                 for m in tweet.extended_entities['media']:
@@ -180,13 +180,13 @@ class PhotoList:
                 concat_file.write("duration 3\n")
         # run
         try:
-            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e:
             print(e.stderr.decode('utf-8'))
             raise
         finally:
             # unlink temp files
-            #os.unlink(concat_path)
+            os.unlink(concat_path)
             for f in files:
                 os.unlink(f)
 
