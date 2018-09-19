@@ -20,6 +20,7 @@ from PIL import Image
 import tempfile
 
 class TweetPI:
+    __version__ = "0.1"
     twitter_consumer_key = None
     twitter_consumer_secret = None
     twitter_access_token = None
@@ -414,6 +415,7 @@ def main(argv=None):
         argv = sys.argv[1:]
 
     argparser = argparse.ArgumentParser(prog="TweetPI.py", description='Tweet Photo Insight: Python library to get photos in Twitter feed, with a video and photo annotations.')
+    argparser.add_argument('--version', action='version', version='%(prog)s {}'.format(TweetPI.__version__))
     subparsers = argparser.add_subparsers(help=".")
 
     parser_list = subparsers.add_parser('list', help='list images in Twitter feed')
