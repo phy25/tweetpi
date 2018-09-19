@@ -149,6 +149,7 @@ class LocalPhoto:
         self.local_path = local_path
 
     def resize(self, width=1280, height=720, fill_color=(0, 0, 0)):
+        # https://stackoverflow.com/a/44231784/4073795
         if not self.PILim:
             self.PILim = Image.open(self.local_path)
         x, y = self.PILim.size
@@ -256,14 +257,6 @@ class PhotoList:
         font_size = 45
         font = ImageFont.truetype(font_file, size=font_size)
 
-        '''
-        lines = textwrap.wrap(text, width=40)
-        y_text = h
-        for line in lines:
-            width, height = font.getsize(line)
-            draw.text(((w - width) / 2, y_text), line, font=font, fill=FOREGROUND)
-            y_text += height
-        '''
         for p in self.l:
             lp = LocalPhoto(local_path=p.local_path)
             im = lp.resize(width=int(sizes[0]), height=int(sizes[1]))
@@ -272,7 +265,13 @@ class PhotoList:
             #Roboto-Regular.ttf
             draw = ImageDraw.Draw(im)
             message = ", ".join([l.description for l in p.annotation.label_annotations])
-            draw.text((font_size, max(0, int(sizes[1])-font_size*2)), message, fill='rgb(0, 0, 255)', font=font)
+            lines = textwrap.wrap(message, width=floor((int(sizes[0])-4*font_size)/font_size)*2)
+            font_linesize = font.getsize(lines[0])
+            x_text = (int(sizes[0]) -font_linesize[0]) / 2
+            y_text = max(0, int(sizes[1])-font_size*(len(lines)+1))
+            for line in lines:
+                draw.text((x_text, y_text), line, fill='rgb(0, 0, 255)', font=font)
+                y_text += font_linesize[1]
             # save the edited image
             temp_path = os.path.join(tempfile.gettempdir(), os.path.basename(p.local_path))
             im.save(temp_path)
