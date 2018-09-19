@@ -193,15 +193,15 @@ class PhotoList:
         successful = True
         total = len(self.l)
         if shell:
-            print("{} items to be downloaded".format(total))
+            print("{} items to be downloaded".format(total), file=sys.stderr)
         for p in self.l:
             completed += 1
             try:
                 res = p.download(force=force)
                 if shell:
-                    print("({}/{}) Downloaded: {}".format(completed, total, p.remote_url))
+                    print("({}/{}) Downloaded: {}".format(completed, total, p.remote_url), file=sys.stderr)
             except Exception:
-                print("({}/{}) Failed: {}".format(completed, total, p.remote_url))
+                print("({}/{}) Failed: {}".format(completed, total, p.remote_url), file=sys.stderr)
                 successful = False
         return successful
 
