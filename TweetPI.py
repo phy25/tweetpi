@@ -172,9 +172,9 @@ class LocalPhoto:
         return name
 
     def add_annotation(self, width=1280, height=720, fill_color=(0, 0, 0, 0)):
-        im = self.resize(width=width, height=height, fill_color=fill_color)
-        name = os.path.join(tempfile.gettempdir(), os.path.basename(self.local_path))
-        return im
+        # TODO: extract PhotoList.generate_annotated_video to here,
+        # and tackling ttf performance issue
+        raise Exception("add_annotation not implemented")
 
 class PhotoList:
     l = list()
