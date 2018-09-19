@@ -240,7 +240,7 @@ class PhotoList:
 
         return fullpath
 
-    def generate_annotated_video(self, name=None, size="1280x720", shell=False, font_file="Roboto-Regular.ttf"):
+    def generate_annotated_video(self, name=None, size="1280x720", shell=False, interval=3, font_file="Roboto-Regular.ttf", font_color="rgb(0, 0, 255)", font_size=40):
         if not name:
             name = self.source+".mp4"
         fullpath = os.path.abspath(name)
@@ -254,7 +254,6 @@ class PhotoList:
         from PIL import ImageDraw, ImageFont
         from math import floor
         import textwrap
-        font_size = 45
         font = ImageFont.truetype(font_file, size=font_size)
 
         for p in self.l:
@@ -270,7 +269,7 @@ class PhotoList:
             x_text = (int(sizes[0]) -font_linesize[0]) / 2
             y_text = max(0, int(sizes[1])-font_size*(len(lines)+1))
             for line in lines:
-                draw.text((x_text, y_text), line, fill='rgb(0, 0, 255)', font=font)
+                draw.text((x_text, y_text), line, fill=font_color, font=font)
                 y_text += font_linesize[1]
             # save the edited image
             temp_path = os.path.join(tempfile.gettempdir(), os.path.basename(p.local_path))
@@ -282,7 +281,7 @@ class PhotoList:
         with open(concat_path, "w") as concat_file:
             for f in files:
                 concat_file.write("file '{}'\n".format(f))
-                concat_file.write("duration 3\n")
+                concat_file.write("duration {}\n".format(interval))
         # run
         try:
             proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -368,7 +367,7 @@ def shell_video(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_video(name=args.output, size=size, shell=True)
+            result = photolist.generate_video(name=args.output, size=size, shell=True, interval=args.interval)
             print(result)
         else:
             sys.exit(1)
@@ -401,7 +400,7 @@ def shell_annotatedvideo(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_annotated_video(name=args.output, size=size, shell=True)
+            result = photolist.generate_annotated_video(name=args.output, size=size, shell=True, font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize)
             print(result)
         else:
             sys.exit(1)
@@ -435,7 +434,7 @@ def main(argv=None):
     parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_video.add_argument('--size', help="Video size, default: 1280x720")
     parser_video.add_argument('--output', help="Output filename, default: timeline-id.mp4")
-    parser_video.add_argument('--interval', help="Seconds per image, default: 3")
+    parser_video.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
     parser_video.set_defaults(func=shell_video)
 
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
@@ -450,8 +449,10 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_annotatedvideo.add_argument('--size', help="Video size, default: 1280x720")
     parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
-    parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3")
-    parser_annotatedvideo.add_argument('--fontfile', help="Optional font file path (should be ttf file)")
+    parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
+    parser_annotatedvideo.add_argument('--fontfile', help="Optional font file path (should be ttf file)", default="Roboto-Regular.ttf")
+    parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(0, 0, 255)", default="rgb(0, 0, 255)")
+    parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 50", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
 
     if len(argv) == 0:
