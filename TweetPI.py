@@ -49,9 +49,9 @@ class TweetPI:
 
     def get_timeline(self, username, page, limit, order_latest=False):
         if username == "__home__":
-            tweets = self.twitter_api.home_timeline(count=limit, page=page)
+            tweets = self.twitter_api.home_timeline(count=limit, page=page, trim_user=True, tweet_mode="extended")
         else:
-            tweets = self.twitter_api.user_timeline(id=username, count=limit, page=page)
+            tweets = self.twitter_api.user_timeline(id=username, count=limit, page=page, trim_user=True, tweet_mode="extended")
         photos = []
         if not order_latest:
             tweets.reverse()
@@ -240,7 +240,7 @@ class PhotoList:
 
         return fullpath
 
-    def generate_annotated_video(self, name=None, size="1280x720", shell=False, interval=3, font_file="Roboto-Regular.ttf", font_color="rgb(0, 0, 255)", font_size=40):
+    def generate_annotated_video(self, name=None, size="1280x720", shell=False, interval=3, font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40):
         if not name:
             name = self.source+".mp4"
         fullpath = os.path.abspath(name)
@@ -413,7 +413,7 @@ def main(argv=None):
     if not argv:
         argv = sys.argv[1:]
 
-    argparser = argparse.ArgumentParser(prog="TweetPI.py", description='Tweet Photo Insight: Python API to get photos in Twitter feed, with a video and photo annotations.')
+    argparser = argparse.ArgumentParser(prog="TweetPI.py", description='Tweet Photo Insight: Python library to get photos in Twitter feed, with a video and photo annotations.')
     subparsers = argparser.add_subparsers(help=".")
 
     parser_list = subparsers.add_parser('list', help='list images in Twitter feed')
@@ -451,7 +451,7 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
     parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
     parser_annotatedvideo.add_argument('--fontfile', help="Optional font file path (should be ttf file)", default="Roboto-Regular.ttf")
-    parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(0, 0, 255)", default="rgb(0, 0, 255)")
+    parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(255, 0, 0)", default="rgb(255, 0, 0)")
     parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 50", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
 
