@@ -8,6 +8,15 @@ This is very experimental, and thus the API may change at any time.
 
 Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
+## TOC
+
+- [Breaking changes](#breaking-changes)
+- [Design](#design)
+- [Install](#install)
+- [Use within shell](#use-within-shell)
+- [Use as a library](#use-as-a-library)
+- [Acknowledgement](#acknowledgement)
+
 ## Breaking changes
 
 None yet.
@@ -44,8 +53,7 @@ Go to https://developer.twitter.com/en/apply/user and apply (Though this is hard
 
 ### Google
 
-Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only "Set up your project
-" part) to set up your project and [enable "Cloud Vision API"](https://console.cloud.google.com/flows/enableapi?apiid=vision.googleapis.com&redirect=https://console.cloud.google.com&_ga=2.107360394.-90131543.1534915532). You don't need to create a Cloud Storage bucket for using TweetPI.
+Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only "Set up your project" part) to set up your project and [enable "Cloud Vision API"](https://console.cloud.google.com/flows/enableapi?apiid=vision.googleapis.com&redirect=https://console.cloud.google.com&_ga=2.107360394.-90131543.1534915532). You don't need to create a Cloud Storage bucket for using TweetPI.
 
 Then you need to obtain a service account key (in JSON). If you don't have one, go to https://console.cloud.google.com/apis/credentials/serviceaccountkey, follow the guide (you don't need to choose a role for using TweetPI), choose JSON, and download the `.json` file.
 
@@ -123,3 +131,6 @@ except Exception as e:
 
 print(photolist.get_list())
 ```
+
+## Acknowledgement
+
