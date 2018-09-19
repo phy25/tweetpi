@@ -6,11 +6,15 @@ Python library to get photos in Twitter feed, with a video and photo annotations
 
 This is very experimental, and thus the API may change at any time.
 
-Scrum board: https://github.com/phy25/tweetpi/projects/1
+Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Breaking changes
 
 None yet.
+
+## Design
+
+TBW
 
 ## Install
 
@@ -25,18 +29,22 @@ $ pip install -r requirements.txt --user
 
 Windows usage: not tested yet (does not work indeed), but it's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-## Obtain service token
+## Obtain the service token
 
 You need to prepare your Twitter API token and Google Cloud Vision API service account JSON.
 
-Twitter: Go to https://developer.twitter.com/en/apply/user and apply (Though this is harder than before :-( ). If you (already) have one, go to https://apps.twitter.com/ to obtain the following information, and fill them into options with `TweetPI()`. Note that we need read-only or broader access.
+### Twitter
+
+Go to https://developer.twitter.com/en/apply/user and apply (Though this is harder than before :-( ). If you (already) have one, go to https://apps.twitter.com/ to obtain the following information, and fill them into options with `TweetPI()`. Note that we need read-only or broader access.
 
 - Consumer Key (API Key) -> `options.twitter_consumer_key`
 - Consumer Secret (API Secret) -> `options.twitter_consumer_secret`
 - Access Token -> `options.twitter_access_token`
 - Access Token Secret -> `options.twitter_access_secret`
 
-Google: Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only "Set up your project
+### Google
+
+Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only "Set up your project
 " part) to set up your project and [enable "Cloud Vision API"](https://console.cloud.google.com/flows/enableapi?apiid=vision.googleapis.com&redirect=https://console.cloud.google.com&_ga=2.107360394.-90131543.1534915532). You don't need to create a Cloud Storage bucket for using TweetPI.
 
 Then you need to obtain a service account key (in JSON). If you don't have one, go to https://console.cloud.google.com/apis/credentials/serviceaccountkey, follow the guide (you don't need to choose a role for using TweetPI), choose JSON, and download the `.json` file.
@@ -98,7 +106,7 @@ $ TweetPI.py annotatedvideo --timeline POTUS --limit 50 --options '{"twitter_con
 
 Currently images on Twitter will be downloaded to the working directory by default.
 
-## Use as library
+## Use as a library
 
 You can refer to the shell code in TweetPI.py. Also you can refer to [README_demo.py](README_demo.py).
 
