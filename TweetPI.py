@@ -3,6 +3,8 @@
 Module TweetPI, by @phy25
 
 @deps tweepy
+@deps google-cloud-vision
+@deps Pillow
 """
 
 import sys, os
@@ -22,21 +24,31 @@ class TweetPI:
     twitter_consumer_secret = None
     twitter_access_token = None
     twitter_access_secret = None
+    google_key_json = None
     local_folder = None
+    twitter_api = None
+    gvision_client = None
     def __init__(self, options):
-        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "local_folder"]
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "local_folder"]
         if type(options) == dict:
             for k in keys:
                 if k in options:
                     self.__setattr__(k, options[k])
 
+        # Init Twitter API
+        tauth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
+        tauth.set_access_token(self.twitter_access_token, self.twitter_access_secret)
+        self.twitter_api = tweepy.API(tauth)
+
+        # Init Google Vision API
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_file(self.google_key_json)
+        #scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/cloud-platform'])
+        from google.cloud import vision
+        self.gvision_client = vision.ImageAnnotatorClient(credentials=credentials)
+
     def get_timeline(self, username, page, limit, order_latest=False):
-        auth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
-        auth.set_access_token(self.twitter_access_token, self.twitter_access_secret)
-
-        api = tweepy.API(auth)
-
-        tweets = api.user_timeline(id=username, count=limit, page=page)
+        tweets = self.twitter_api.user_timeline(id=username, count=limit, page=page)
         photos = []
         if not order_latest:
             tweets.reverse()
@@ -44,11 +56,11 @@ class TweetPI:
             try:
                 for m in tweet.extended_entities['media']:
                     if m['type'] == 'photo':
-                        photos.append(Photo(local_folder=self.local_folder, tweet_json=m))
+                        photos.append(Photo(parent=self, tweet_json=m))
             except AttributeError:
                 pass
 
-        return PhotoList(list=photos, source="timeline-"+username)
+        return PhotoList(list=photos, source="timeline-"+username, parent=self)
 
 # Thanks to https://stackoverflow.com/a/2704866/4073795
 class Photo(collections.Mapping):
@@ -59,8 +71,11 @@ class Photo(collections.Mapping):
     remote_url = ""
     local_path = None
     tweet_json = None
-    def __init__(self, local_folder, tweet_json = None):
-        self.local_folder = local_folder
+    parent = None
+    annotation = None
+    def __init__(self, tweet_json = None, parent=None):
+        self.parent = parent
+        self.local_folder = self.parent.local_folder
         if not self.local_folder:
            self. local_folder = ""
         if tweet_json:
@@ -104,6 +119,26 @@ class Photo(collections.Mapping):
             else:
                 raise Exception("Image download with wrong HTTP code: "+response.getcode())
 
+    def get_annotation_request(self, force=False):
+        if self.annotation and not self.force:
+            return None
+
+        from google.cloud import vision
+        return {
+            'image':{'source': {'image_uri': self.remote_url}},
+            'features': [{'type': vision.enums.Feature.Type.LABEL_DETECTION}]
+        }
+
+    def get_annotation(self):
+        if self.annotation:
+            return self.annotation
+        req = self.get_annotation_request()
+        if not req:
+            return False
+        response = self.parent.gvision_client.annotate_image(req)
+        self.annotation = response
+        return response
+
 class LocalPhoto:
     local_path = ""
     PILim = None
@@ -135,10 +170,12 @@ class LocalPhoto:
 class PhotoList:
     l = list()
     source = "unknown"
-    def __init__(self, list, source=""):
+    parent = None
+    def __init__(self, list, source="", parent=None):
         refined_list = [o for o in set(list)]
         # unique things
         self.l = refined_list
+        self.parent = parent
         if source:
             self.source = source
 
@@ -193,8 +230,25 @@ class PhotoList:
 
         return fullpath
 
+    def fetch_annotations(self):
+        # figure out what shoule be requested
+        photolist = []
+        requests = []
+        for p in self.l:
+            r = p.get_annotation_request()
+            if r:
+                photolist.append(p)
+                requests.append(r)
+
+        # request
+        resp = self.parent.gvision_client.batch_annotate_images(requests)
+        assert len(resp.responses) == len(photolist)
+        for r in resp.responses:
+            photolist.pop(0).annotation = r
+
     def get_annotations(self):
-        return list()
+        self.fetch_annotations()
+        return self.l
 
     def get_list(self):
         return self.l
@@ -254,7 +308,7 @@ def shell_video(args):
         sys.exit(2)
 
 def shell_annotate(args):
-    tpi = TweetPI({})
+    tpi = shell_init_lib(args)
     try:
         if 'timeline' in args:
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
@@ -266,7 +320,7 @@ def shell_annotate(args):
         sys.exit(2)
 
     for t in result:
-        print(t)
+        print('{}: {}'.format(t.remote_url, ", ".join([a.description for a in t.annotation.label_annotations])))
 
 def main(argv=None):
     import argparse
@@ -299,7 +353,19 @@ def main(argv=None):
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
     parser_annotate.add_argument('--timeline', required=True, help="from someone's timeline")
     parser_annotate.add_argument('--limit', help="tweets limit")
+    parser_annotate.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_annotate.set_defaults(func=shell_annotate)
+
+    '''
+    # Reserved for future
+    parser_annotatedvideo = subparsers.add_parser('annotatedvideo', help='get annotated video of photos in Twitter feed')
+    parser_annotatedvideo.add_argument('--timeline', required=True, help="from someone's timeline")
+    parser_annotatedvideo.add_argument('--limit', help="tweets limit")
+    parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_annotatedvideo.add_argument('--size', help="Video size, default: 1280x720")
+    parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
+    parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
+    '''
 
     if len(argv) == 0:
         argparser.print_help(sys.stderr)
