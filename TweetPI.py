@@ -252,8 +252,18 @@ class PhotoList:
         files = []
         from PIL import ImageDraw, ImageFont
         from math import floor
+        import textwrap
         font_size = 45
         font = ImageFont.truetype(font_file, size=font_size)
+
+        '''
+        lines = textwrap.wrap(text, width=40)
+        y_text = h
+        for line in lines:
+            width, height = font.getsize(line)
+            draw.text(((w - width) / 2, y_text), line, font=font, fill=FOREGROUND)
+            y_text += height
+        '''
         for p in self.l:
             lp = LocalPhoto(local_path=p.local_path)
             im = lp.resize(width=int(sizes[0]), height=int(sizes[1]))
@@ -426,6 +436,7 @@ def main(argv=None):
     parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_video.add_argument('--size', help="Video size, default: 1280x720")
     parser_video.add_argument('--output', help="Output filename, default: timeline-id.mp4")
+    parser_video.add_argument('--interval', help="Seconds per image, default: 3")
     parser_video.set_defaults(func=shell_video)
 
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
@@ -440,6 +451,8 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_annotatedvideo.add_argument('--size', help="Video size, default: 1280x720")
     parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
+    parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3")
+    parser_annotatedvideo.add_argument('--fontfile', help="Optional font file path (should be ttf file)")
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
 
     if len(argv) == 0:
