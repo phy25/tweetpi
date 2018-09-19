@@ -170,6 +170,11 @@ class LocalPhoto:
         im.save(name)
         return name
 
+    def add_annotation(self, width=1280, height=720, fill_color=(0, 0, 0, 0)):
+        im = self.resize(width=width, height=height, fill_color=fill_color)
+        name = os.path.join(tempfile.gettempdir(), os.path.basename(self.local_path))
+        return im
+
 class PhotoList:
     l = list()
     source = "unknown"
@@ -223,7 +228,8 @@ class PhotoList:
         try:
             proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e:
-            print(e.stderr.decode('utf-8'))
+            if shell:
+                print(e.stderr.decode('utf-8'))
             raise
         finally:
             # unlink temp files
@@ -232,6 +238,57 @@ class PhotoList:
                 os.unlink(f)
 
         return fullpath
+
+    def generate_annotated_video(self, name=None, size="1280x720", shell=False, font_file="Roboto-Regular.ttf"):
+        if not name:
+            name = self.source+".mp4"
+        fullpath = os.path.abspath(name)
+        d = self.download_all(shell=shell, force=False)
+        if not d:
+            return False
+
+        self.fetch_annotations()
+        sizes = size.split('x')
+        files = []
+        from PIL import ImageDraw, ImageFont
+        from math import floor
+        font_size = 45
+        font = ImageFont.truetype(font_file, size=font_size)
+        for p in self.l:
+            lp = LocalPhoto(local_path=p.local_path)
+            im = lp.resize(width=int(sizes[0]), height=int(sizes[1]))
+
+            # Draw text
+            #Roboto-Regular.ttf
+            draw = ImageDraw.Draw(im)
+            message = ", ".join([l.description for l in p.annotation.label_annotations])
+            draw.text((font_size, max(0, int(sizes[1])-font_size*2)), message, fill='rgb(0, 0, 255)', font=font)
+            # save the edited image
+            temp_path = os.path.join(tempfile.gettempdir(), os.path.basename(p.local_path))
+            im.save(temp_path)
+            files.append(temp_path)
+
+        # generate concat files
+        concat_path = os.path.join(tempfile.gettempdir(), name+".txt")
+        with open(concat_path, "w") as concat_file:
+            for f in files:
+                concat_file.write("file '{}'\n".format(f))
+                concat_file.write("duration 3\n")
+        # run
+        try:
+            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            if shell:
+                print(e.stderr.decode('utf-8'))
+            raise
+        finally:
+            # unlink temp files
+            os.unlink(concat_path)
+            for f in files:
+                os.unlink(f)
+
+        return fullpath
+
 
     def fetch_annotations(self):
         # figure out what shoule be requested
@@ -325,6 +382,24 @@ def shell_annotate(args):
     for t in result:
         print('{}: {}'.format(t.remote_url, ", ".join([a.description for a in t.annotation.label_annotations])))
 
+def shell_annotatedvideo(args):
+    tpi = shell_init_lib(args)
+    try:
+        if 'timeline' in args:
+            size = args.size if args.size else "1280x720"
+            sizeParse = size.split('x')
+            if not sizeParse[0].isdigit() or not sizeParse[1].isdigit():
+                print("Size should be like 1280x720", file=sys.stderr)
+                sys.exit(1)
+            photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
+            result = photolist.generate_annotated_video(name=args.output, size=size, shell=True)
+            print(result)
+        else:
+            sys.exit(1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        sys.exit(2)
+
 def main(argv=None):
     import argparse
     if not argv:
@@ -334,19 +409,19 @@ def main(argv=None):
     subparsers = argparser.add_subparsers(help=".")
 
     parser_list = subparsers.add_parser('list', help='list images in Twitter feed')
-    parser_list.add_argument('--timeline', required=True, const=True, nargs="?", help="from your home timeline or someone's user timeline")
+    parser_list.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_list.add_argument('--limit', help="tweets limit")
     parser_list.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_list.set_defaults(func=shell_list)
 
     parser_download = subparsers.add_parser('download', help='download images in Twitter feed')
-    parser_download.add_argument('--timeline', required=True, const=True, nargs="?", help="from your home timeline or someone's user timeline")
+    parser_download.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_download.add_argument('--limit', help="tweets limit")
     parser_download.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_download.set_defaults(func=shell_download)
 
     parser_video = subparsers.add_parser('video', help='generate a video from images in Twitter feed')
-    parser_video.add_argument('--timeline', required=True, const=True, nargs="?", help="from your home timeline or someone's user timeline")
+    parser_video.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_video.add_argument('--limit', help="tweets limit")
     parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_video.add_argument('--size', help="Video size, default: 1280x720")
@@ -359,16 +434,13 @@ def main(argv=None):
     parser_annotate.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_annotate.set_defaults(func=shell_annotate)
 
-    '''
-    # Reserved for future
     parser_annotatedvideo = subparsers.add_parser('annotatedvideo', help='get annotated video of photos in Twitter feed')
-    parser_annotatedvideo.add_argument('--timeline', required=True, const=True, nargs="?", help="from your home timeline or someone's user timeline")
+    parser_annotatedvideo.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_annotatedvideo.add_argument('--limit', help="tweets limit")
     parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library in JSON format")
     parser_annotatedvideo.add_argument('--size', help="Video size, default: 1280x720")
     parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
-    '''
 
     if len(argv) == 0:
         argparser.print_help(sys.stderr)
