@@ -166,10 +166,11 @@ class PhotoList:
         d = self.download_all(shell=shell, force=False)
         if not d:
             return False
+        sizes = size.split('x')
         files = []
         for p in self.l:
             lp = LocalPhoto(local_path=p.local_path)
-            temp_path = lp.resize_to_temp()
+            temp_path = lp.resize_to_temp(width=int(sizes[0]), height=int(sizes[1]))
             files.append(temp_path)
 
         # generate concat files
@@ -238,15 +239,19 @@ def shell_video(args):
     tpi = shell_init_lib(args)
     try:
         if 'timeline' in args:
+            size = args.size if args.size else "1280x720"
+            sizeParse = size.split('x')
+            if not sizeParse[0].isdigit() or not sizeParse[1].isdigit():
+                print("Size should be like 1280x720", file=sys.stderr)
+                sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_video()
+            result = photolist.generate_video(name=args.output, size=size, shell=True)
             print(result)
         else:
             sys.exit(1)
     except Exception as e:
-        raise
-        #print(e, file=sys.stderr)
-        #sys.exit(2)
+        print(e, file=sys.stderr)
+        sys.exit(2)
 
 def shell_annotate(args):
     tpi = TweetPI({})
@@ -287,6 +292,8 @@ def main(argv=None):
     parser_video.add_argument('--timeline', required=True, help="from someone's timeline")
     parser_video.add_argument('--limit', help="tweets limit")
     parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_video.add_argument('--size', help="Video size, default: 1280x720")
+    parser_video.add_argument('--output', help="Output filename, default: timeline-id.mp4")
     parser_video.set_defaults(func=shell_video)
 
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
