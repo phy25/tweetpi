@@ -15,6 +15,8 @@ None yet.
 This library is currently tested within Ubuntu. You need to install Python (tested with Python 3.5 now), ffmpeg, and respective Python library.
 
 ```shell
+$ git clone https://github.com/phy25/tweetpi.git
+$ cd tweetpi
 $ sudo apt-get install ffmpeg
 $ pip install -r requirements.txt --user
 ```
