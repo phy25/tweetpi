@@ -119,15 +119,25 @@ class Photo(collections.Mapping):
             else:
                 raise Exception("Image download with wrong HTTP code: "+response.getcode())
 
+    def get_annotation_request(self, force=False):
+        if self.annotation and not self.force:
+            return None
+
+        from google.cloud import vision
+        return {
+            'image':{'source': {'image_uri': self.remote_url}},
+            'features': [{'type': vision.enums.Feature.Type.LABEL_DETECTION}]
+        }
+
     def get_annotation(self):
         if self.annotation:
             return self.annotation
-        from google.cloud import vision
-        response = self.parent.gvision_client.label_detection(
-            {'source': {'image_uri': self.remote_url}}
-        )
-        self.annotation = response.label_annotations
-        return response.label_annotations
+        req = self.get_annotation_request()
+        if not req:
+            return False
+        response = self.parent.gvision_client.annotate_image(req)
+        self.annotation = response
+        return response
 
 class LocalPhoto:
     local_path = ""
@@ -221,8 +231,20 @@ class PhotoList:
         return fullpath
 
     def fetch_annotations(self):
+        # figure out what shoule be requested
+        photolist = []
+        requests = []
         for p in self.l:
-            p.get_annotation()
+            r = p.get_annotation_request()
+            if r:
+                photolist.append(p)
+                requests.append(r)
+
+        # request
+        resp = self.parent.gvision_client.batch_annotate_images(requests)
+        assert len(resp.responses) == len(photolist)
+        for r in resp.responses:
+            photolist.pop(0).annotation = r
 
     def get_annotations(self):
         self.fetch_annotations()
@@ -298,7 +320,7 @@ def shell_annotate(args):
         sys.exit(2)
 
     for t in result:
-        print('{}: {}'.format(t.remote_url, ", ".join([a.description for a in t.annotation])))
+        print('{}: {}'.format(t.remote_url, ", ".join([a.description for a in t.annotation.label_annotations])))
 
 def main(argv=None):
     import argparse
