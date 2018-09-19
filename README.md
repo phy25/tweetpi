@@ -6,6 +6,8 @@ Python library to get photos in Twitter feed, with a video and photo annotations
 
 This is very experimental, and thus the API may change at any time.
 
+Scrum board: https://github.com/phy25/tweetpi/projects/1
+
 ## Breaking changes
 
 None yet.
