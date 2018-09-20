@@ -8,14 +8,15 @@ This is very experimental, and thus the API may change at any time.
 
 Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
-## TOC
+## Contents
 
 - [Breaking changes](#breaking-changes)
 - [Design](#design)
 - [Install](#install)
 - [Use within shell](#use-within-shell)
 - [Use as a library](#use-as-a-library)
-- [Acknowledgement](#acknowledgement)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
 ## Breaking changes
 
@@ -23,7 +24,26 @@ None yet.
 
 ## Design
 
-TBW
+```
+ +-------+ .get_timeline() +---------+      .photos       +-----------+
+ |TweetPI+---------------->+PhotoList+------------------->+  Photos   |
+ +-------+                 +---------+                    +-----------+
+                                |                               |
+                                | .download_all()               | .download()
+                                |                               |
+                                |                               |
+                                | .generate_video()             | LocalPhoto.resize()
+                                |                               |
+                                |                               |
+                                | .get_annotations()            | .get_annotation()
+                                |                               |
+                                |                               |
+                                | .generate_annotated_video()   | LocalPhoto.add_annotation()
+                                |                               |
+                                +                               +
+```
+
+\* `LocalPhoto` should be redesigned as `PhotoEditor(Photo)`. Currently `LocalPhoto` is intended to be a "private" class.
 
 ## Install
 
@@ -132,5 +152,19 @@ except Exception as e:
 print(photolist.get_list())
 ```
 
-## Acknowledgement
+## License
 
+[This project is licensed under MIT license.](LICENSE)
+
+## Acknowledgements
+
+I cannot finish this so fast without various online resources, including mature Python libraries, official reference, StackOverflow posts, and inspirations from my classmates. I have left credit to several StackOverflow posts in the source code, though they may not look like what they were on the answers, I would like to say: Thank you!
+
+- TA's recommendation of `tweepy`
+- state-of-the-art open-source `ffmpeg`
+- Hashable class idea from https://stackoverflow.com/a/2704866/4073795
+- Download image method from https://stackoverflow.com/a/7244263/4073795
+- Resize image with Pillow from https://stackoverflow.com/a/44231784/4073795
+- Multiline text with Pillow from https://stackoverflow.com/a/7698300/4073795
+- [Professor's recommendation of `subprocess`](https://piazza.com/class/jlx16o3kyrv53w?cid=13)
+- Classmates' oral discussion of using Google Vision Image API (instead of the video ones), ffmpeg's "width divided by 2" error, drawing annotations on the video (I really don't remember who they are, sorry!)
