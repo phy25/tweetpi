@@ -20,7 +20,9 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Breaking changes
 
-None yet.
+## v0.2
+
+- `PhotoList.l` is changed to `PhotoList.photos`. Before it is encourged to use `PhotoList.get_list()`, but since we want to be more pythonic, `PhotoList.photos` will be supported in the future. If it is necessary to use function getter/setter, `PhotoList.photos` will be kept available.
 
 ## Design
 
