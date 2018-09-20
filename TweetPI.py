@@ -178,13 +178,13 @@ class LocalPhoto:
         raise Exception("add_annotation not implemented")
 
 class PhotoList:
-    l = list()
+    photos = list()
     source = "unknown"
     parent = None
     def __init__(self, list, source="", parent=None):
         refined_list = [o for o in set(list)]
         # unique things
-        self.l = refined_list
+        self.photos = refined_list
         self.parent = parent
         if source:
             self.source = source
@@ -192,10 +192,10 @@ class PhotoList:
     def download_all(self, shell=False, force=True):
         completed = 0
         successful = True
-        total = len(self.l)
+        total = len(self.photos)
         if shell:
             print("{} items to be downloaded".format(total), file=sys.stderr)
-        for p in self.l:
+        for p in self.photos:
             completed += 1
             try:
                 res = p.download(force=force)
@@ -215,12 +215,13 @@ class PhotoList:
             return False
         sizes = size.split('x')
         files = []
-        for p in self.l:
+        for p in self.photos:
             lp = LocalPhoto(local_path=p.local_path)
             temp_path = lp.resize_to_temp(width=int(sizes[0]), height=int(sizes[1]))
             files.append(temp_path)
 
         # generate concat files
+        # https://trac.ffmpeg.org/wiki/Slideshow
         concat_path = os.path.join(tempfile.gettempdir(), name+".txt")
         with open(concat_path, "w") as concat_file:
             for f in files:
@@ -257,11 +258,12 @@ class PhotoList:
         import textwrap
         font = ImageFont.truetype(font_file, size=font_size)
 
-        for p in self.l:
+        for p in self.photos:
             lp = LocalPhoto(local_path=p.local_path)
             im = lp.resize(width=int(sizes[0]), height=int(sizes[1]))
 
             # Draw text
+            # https://stackoverflow.com/a/7698300/4073795
             #Roboto-Regular.ttf
             draw = ImageDraw.Draw(im)
             message = ", ".join([l.description for l in p.annotation.label_annotations])
@@ -303,7 +305,7 @@ class PhotoList:
         # figure out what shoule be requested
         photolist = []
         requests = []
-        for p in self.l:
+        for p in self.photos:
             r = p.get_annotation_request()
             if r:
                 photolist.append(p)
@@ -317,10 +319,10 @@ class PhotoList:
 
     def get_annotations(self):
         self.fetch_annotations()
-        return self.l
+        return self.photos
 
     def get_list(self):
-        return self.l
+        return self.photos
 
 def shell_init_lib(args):
     o = {}
