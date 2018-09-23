@@ -206,7 +206,7 @@ class PhotoList:
                 successful = False
         return successful
 
-    def generate_video(self, name=None, size="1280x720", shell=False):
+    def generate_video(self, name=None, size="1280x720", shell=False, interval=3):
         if not name:
             name = self.source+".mp4"
         fullpath = os.path.abspath(name)
@@ -226,7 +226,7 @@ class PhotoList:
         with open(concat_path, "w") as concat_file:
             for f in files:
                 concat_file.write("file '{}'\n".format(f))
-                concat_file.write("duration 3\n")
+                concat_file.write("duration {}\n".format(interval))
         # run
         try:
             proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
