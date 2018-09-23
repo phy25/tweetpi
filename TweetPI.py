@@ -9,8 +9,14 @@ Module TweetPI, by @phy25
 
 import sys, os
 import json
-import collections
 import subprocess
+
+try:
+    # Python 3
+    from collections.abc import Mapping
+except ImportError:
+    # Python 2.7
+    from collections import Mapping
 
 import urllib.request
 import shutil
@@ -67,7 +73,7 @@ class TweetPI:
         return PhotoList(list=photos, source="timeline-"+username, parent=self)
 
 # Thanks to https://stackoverflow.com/a/2704866/4073795
-class Photo(collections.Mapping):
+class Photo(Mapping):
     '''
     Inmutable, hashable
     '''
