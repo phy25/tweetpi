@@ -36,11 +36,15 @@ class TweetPI:
     twitter_api = None
     gvision_client = None
     def __init__(self, options):
-        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "local_folder"]
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder"]
         if type(options) == dict:
             for k in keys:
-                if k in options:
-                    self.__setattr__(k, options[k])
+                optional = k.startswith("_")
+                key = k.strip("_")
+                if key in options:
+                    self.__setattr__(key, options[key])
+                elif not optional:
+                    raise Exception("{} not provided in the options".format(key))
 
         # Init Twitter API
         tauth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
@@ -332,11 +336,21 @@ class PhotoList:
 
 def shell_init_lib(args):
     o = {}
+
+    options_str = "options.json"
+    if 'options' in args and args.options:
+        options_str = args.options
+        if options_str.startswith('"\''):
+            options_str = options_str.strip('"\'')
     try:
-        if 'options' in args:
-            o = json.loads(args.options)
-    except Exception:
-        raise
+        try:
+            with open(options_str, "r") as fp:
+                o = json.load(fp)
+        except IOError:
+            o = json.loads(options_str)
+    except Exception as e:
+        print("Options load failure: {}".format(e), file=sys.stderr)
+        sys.exit(1)
     tpi = TweetPI(o)
     return tpi
 
@@ -427,36 +441,36 @@ def main(argv=None):
     subparsers = argparser.add_subparsers(help=".")
 
     parser_list = subparsers.add_parser('list', help='list images in Twitter feed')
-    parser_list.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
+    parser_list.add_argument('--timeline', '-tl', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_list.add_argument('--limit', help="tweets limit")
-    parser_list.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_list.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_list.set_defaults(func=shell_list)
 
     parser_download = subparsers.add_parser('download', help='download images in Twitter feed')
-    parser_download.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
+    parser_download.add_argument('--timeline', '-tl', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_download.add_argument('--limit', help="tweets limit")
-    parser_download.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_download.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_download.set_defaults(func=shell_download)
 
     parser_video = subparsers.add_parser('video', help='generate a video from images in Twitter feed')
-    parser_video.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
+    parser_video.add_argument('--timeline', '-tl', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_video.add_argument('--limit', help="tweets limit")
-    parser_video.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_video.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_video.add_argument('--size', help="Video size, default: 1280x720")
     parser_video.add_argument('--output', help="Output filename, default: timeline-id.mp4")
     parser_video.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
     parser_video.set_defaults(func=shell_video)
 
     parser_annotate = subparsers.add_parser('annotate', help='get annotations of images in Twitter feed')
-    parser_annotate.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
+    parser_annotate.add_argument('--timeline', '-tl', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_annotate.add_argument('--limit', help="tweets limit")
-    parser_annotate.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_annotate.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_annotate.set_defaults(func=shell_annotate)
 
     parser_annotatedvideo = subparsers.add_parser('annotatedvideo', help='get annotated video of photos in Twitter feed')
-    parser_annotatedvideo.add_argument('--timeline', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
+    parser_annotatedvideo.add_argument('--timeline', '-tl', required=True, const="__home__", nargs="?", help="from your home timeline or someone's user timeline")
     parser_annotatedvideo.add_argument('--limit', help="tweets limit")
-    parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library in JSON format")
+    parser_annotatedvideo.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_annotatedvideo.add_argument('--size', help="Video size, default: 1280x720")
     parser_annotatedvideo.add_argument('--output', help="Output filename, default: timeline-id.mp4")
     parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
