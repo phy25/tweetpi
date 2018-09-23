@@ -1,0 +1,7 @@
+{
+    "twitter_consumer_key":"CHANGEME",
+    "twitter_consumer_secret":"CHANGEME",
+    "twitter_access_token":"CHANGEME",
+    "twitter_access_secret":"CHANGEME",
+    "google_key_json":"gapi.json"
+}
