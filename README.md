@@ -12,6 +12,7 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 - [Breaking changes](#breaking-changes)
 - [Install](#install)
+- [Obtain service tokens](#obtain-service-tokens)
 - [Use within shell](#use-within-shell)
 - [Use as a library](#use-as-a-library)
 - [Design](#design)
@@ -165,6 +166,8 @@ optional arguments:
   --limit LIMIT         tweets limit
   --options OPTIONS     Init config for TweetPI library (JSON file path or
                         JSON string)
+```
+```
 $ TweetPI.py download --help
 usage: TweetPI.py download [-h] --timeline [TIMELINE] [--limit LIMIT]
                            [--options OPTIONS]
@@ -176,6 +179,8 @@ optional arguments:
   --limit LIMIT         tweets limit
   --options OPTIONS     Init config for TweetPI library (JSON file path or
                         JSON string)
+```
+```
 $ TweetPI.py video --help
 usage: TweetPI.py video [-h] --timeline [TIMELINE] [--limit LIMIT]
                         [--options OPTIONS] [--size SIZE] [--output OUTPUT]
@@ -191,6 +196,8 @@ optional arguments:
   --size SIZE           Video size, default: 1280x720
   --output OUTPUT       Output filename, default: timeline-id.mp4
   --interval INTERVAL   Seconds per image, default: 3
+```
+```
 $ TweetPI.py annotate --help
 usage: TweetPI.py annotate [-h] --timeline [TIMELINE] [--limit LIMIT]
                            [--options OPTIONS]
@@ -202,6 +209,8 @@ optional arguments:
   --limit LIMIT         tweets limit
   --options OPTIONS     Init config for TweetPI library (JSON file path or
                         JSON string)
+```
+```
 $ TweetPI.py annotatedvideo --help
 usage: TweetPI.py annotatedvideo [-h] --timeline [TIMELINE] [--limit LIMIT]
                                  [--options OPTIONS] [--size SIZE]
@@ -224,6 +233,7 @@ optional arguments:
                         Optional font color, default: rgb(255, 0, 0)
   --fontsize FONTSIZE   Optional font size, default: 50
 ```
+
 Currently images on Twitter will be downloaded to the working directory by default.
 
 ## Use as a library
@@ -231,9 +241,9 @@ Currently images on Twitter will be downloaded to the working directory by defau
 To make use of the library in Python, either:
 
 - Refer to [README_demo.py](README_demo.py);
-- Refer to the shell code in TweetPI.py.
+- Refer to the shell code in the end of TweetPI.py.
 
-You can read the following Design diagram to learn about what's inside the library.
+You can read the following [Design diagram](#design) to learn about what's inside the library.
 
 ## Design
 
@@ -274,3 +284,4 @@ I cannot finish this so fast without various online resources, including mature 
 - Multiline text with Pillow from https://stackoverflow.com/a/7698300/4073795
 - [Professor's recommendation of `subprocess`](https://piazza.com/class/jlx16o3kyrv53w?cid=13)
 - Classmates' oral discussion of using Google Vision Image API (instead of the video ones), ffmpeg's "width divided by 2" error, drawing annotations on the video (I really don't remember who they are, sorry!)
+- Code review from @huangluyang001
