@@ -247,6 +247,8 @@ You can read the following [Design diagram](#design) to learn about what's insid
 
 ## Design
 
+The following diagram is the current design of the library. Actually it's bad to implement operation methods directly on data objects, so this needs to be changed.
+
 ```
  +-------+ .get_timeline() +---------+      .photos       +-----------+
  |TweetPI+---------------->+PhotoList+------------------->+  Photos   |
