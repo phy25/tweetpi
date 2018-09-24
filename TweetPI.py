@@ -239,10 +239,8 @@ class PhotoList:
                 concat_file.write("duration {}\n".format(interval))
         # run
         try:
-            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", "-stats", "-loglevel", "error", name], check=True, stdout=subprocess.PIPE)
         except subprocess.CalledProcessError as e:
-            if shell:
-                print(e.stderr.decode('utf-8'))
             raise
         finally:
             # unlink temp files
@@ -297,10 +295,8 @@ class PhotoList:
                 concat_file.write("duration {}\n".format(interval))
         # run
         try:
-            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.run(["ffmpeg", "-f", "concat", "-safe", "0", "-i", concat_path, "-pix_fmt", "yuv420p", "-video_size", size, "-y", "-stats", "-loglevel", "error", name], check=True, stdout=subprocess.PIPE)
         except subprocess.CalledProcessError as e:
-            if shell:
-                print(e.stderr.decode('utf-8'))
             raise
         finally:
             # unlink temp files
