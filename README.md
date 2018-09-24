@@ -26,7 +26,9 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Install
 
-This library is currently tested within Ubuntu. You need to install Python (tested with Python 3.5 now), ffmpeg, and respective Python library.
+### Ubuntu
+
+This library is currently tested within Ubuntu. You need to install Python (tested with Python 3.5, 3.7.0 now), ffmpeg, and respective Python library.
 
 ```shell
 $ git clone https://github.com/phy25/tweetpi.git
@@ -35,11 +37,40 @@ $ sudo apt-get install ffmpeg
 $ pip install -r requirements.txt --user
 ```
 
-Windows usage: not tested yet (does not work indeed), but it's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+### Windows
 
-## Obtain the service token
+It's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10); it's the same as on Ubuntu. But if you need to...
+
+```shell
+> git clone https://github.com/phy25/tweetpi.git
+> cd tweetpi
+> pip install -r requirements.txt --user
+```
+And finally, **grab an copy of `ffmpeg.exe` inside `tweetpi` folder** (You can [download here](https://ffmpeg.zeranoe.com/builds/)), or ensure `ffmpeg` is in PATH and thus is execuable from the shell.
+
+## Obtain service tokens
 
 You need to prepare your Twitter API token and Google Cloud Vision API service account JSON.
+
+### How to config
+
+A object called `options` will be passed to TweetPI.
+
+If you intend to use the shell, you can put them as JSON in `options.json` in the folder. If you don't pass `--options` argument to the shell, the program will try to read options from `options.json`.
+
+For example, if `options.twitter_consumer_key` is mentioned, it means here (***) in `options.json`. You just need to put the value in that position (without spaces before and after, and with `"` wrapped!).
+
+```json
+{
+    "twitter_consumer_key":"***",
+    "twitter_consumer_secret":"CHANGEME",
+    "twitter_access_token":"CHANGEME",
+    "twitter_access_secret":"CHANGEME",
+    "google_key_json":"gapi.json"
+}
+```
+
+If you are using the library from your Python code, I guess you are so wise to handle this.
 
 ### Twitter
 
@@ -54,9 +85,9 @@ Go to https://developer.twitter.com/en/apply/user and apply (Though this is hard
 
 Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only "Set up your project" part) to set up your project and [enable "Cloud Vision API"](https://console.cloud.google.com/flows/enableapi?apiid=vision.googleapis.com&redirect=https://console.cloud.google.com&_ga=2.107360394.-90131543.1534915532). You don't need to create a Cloud Storage bucket for using TweetPI.
 
-Then you need to obtain a service account key (in JSON). If you don't have one, go to https://console.cloud.google.com/apis/credentials/serviceaccountkey, follow the guide (you don't need to choose a role for using TweetPI), choose JSON, and download the `.json` file.
+Then you need to obtain a service account key (in JSON). If you don't have one, go to https://console.cloud.google.com/apis/credentials/serviceaccountkey, follow the guide (you don't need to choose a role for using TweetPI), choose JSON, and download the `.json` file to the TweetPI folder.
 
-Currently TweetPI only supports JSON service account key. You can point to the JSON by filling `options.google_key_json` (relative to working directory, e.g. `gapi.json`).
+Currently TweetPI only supports JSON service account key. You can point to the JSON file by filling `options.google_key_json` (relative to working directory, e.g. `My Project f92e3234.json`).
 
 ## Use within shell
 
