@@ -330,6 +330,12 @@ class PhotoList:
     def get_list(self):
         return self.photos
 
+def shell_print_exception(error_name=None):
+    import traceback
+    if error_name:
+        print('=== {} ==='.format(error_name))
+    traceback.print_exc(limit=1)
+
 def shell_init_lib(args):
     o = {}
 
@@ -344,8 +350,8 @@ def shell_init_lib(args):
                 o = json.load(fp)
         except IOError:
             o = json.loads(options_str)
-    except Exception as e:
-        print("Options load failure: {}".format(e), file=sys.stderr)
+    except Exception:
+        shell_print_exception('Options load failure')
         sys.exit(1)
     tpi = TweetPI(o)
     return tpi
@@ -357,8 +363,8 @@ def shell_list(args):
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
         else:
             sys.exit(1)
-    except Exception as e:
-        print(e, file=sys.stderr)
+    except Exception:
+        shell_print_exception()
         sys.exit(2)
 
     for t in photolist.get_list():
@@ -372,8 +378,8 @@ def shell_download(args):
             photolist.download_all(shell=True)
         else:
             sys.exit(1)
-    except Exception as e:
-        print(e, file=sys.stderr)
+    except Exception:
+        shell_print_exception()
         sys.exit(2)
 
 def shell_video(args):
@@ -391,7 +397,7 @@ def shell_video(args):
         else:
             sys.exit(1)
     except Exception as e:
-        print(e, file=sys.stderr)
+        shell_print_exception()
         sys.exit(2)
 
 def shell_annotate(args):
@@ -402,8 +408,8 @@ def shell_annotate(args):
             result = photolist.get_annotations()
         else:
             sys.exit(1)
-    except Exception as e:
-        print(e, file=sys.stderr)
+    except Exception:
+        shell_print_exception()
         sys.exit(2)
 
     for t in result:
@@ -423,8 +429,8 @@ def shell_annotatedvideo(args):
             print(result)
         else:
             sys.exit(1)
-    except Exception as e:
-        print(e, file=sys.stderr)
+    except Exception:
+        shell_print_exception()
         sys.exit(2)
 
 def main(argv=None):
