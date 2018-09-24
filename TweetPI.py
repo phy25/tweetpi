@@ -478,7 +478,7 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--interval', help="Seconds per image, default: 3", type=int, default=3)
     parser_annotatedvideo.add_argument('--fontfile', help="Optional font file path (should be ttf file)", default="Roboto-Regular.ttf")
     parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(255, 0, 0)", default="rgb(255, 0, 0)")
-    parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 50", type=int, default=40)
+    parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 40", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
 
     if len(argv) == 0:
