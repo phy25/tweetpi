@@ -11,10 +11,10 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 ## Contents
 
 - [Breaking changes](#breaking-changes)
-- [Design](#design)
 - [Install](#install)
 - [Use within shell](#use-within-shell)
 - [Use as a library](#use-as-a-library)
+- [Design](#design)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
@@ -23,29 +23,6 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 ### v0.2
 
 - `PhotoList.l` is changed to `PhotoList.photos`. Before it is encourged to use `PhotoList.get_list()`, but since we want to be more pythonic, `PhotoList.photos` will be supported in the future. If it is necessary to use function getter/setter, `PhotoList.photos` will be kept available.
-
-## Design
-
-```
- +-------+ .get_timeline() +---------+      .photos       +-----------+
- |TweetPI+---------------->+PhotoList+------------------->+  Photos   |
- +-------+                 +---------+                    +-----------+
-                                |                               |
-                                | .download_all()               | .download()
-                                |                               |
-                                |                               |
-                                | .generate_video()             | LocalPhoto.resize()
-                                |                               |
-                                |                               |
-                                | .get_annotations()            | .get_annotation()
-                                |                               |
-                                |                               |
-                                | .generate_annotated_video()   | LocalPhoto.add_annotation()
-                                |                               |
-                                +                               +
-```
-
-\* `LocalPhoto` should be redesigned as `PhotoEditor(Photo)`. Currently `LocalPhoto` is intended to be a "private" class.
 
 ## Install
 
@@ -83,7 +60,46 @@ Currently TweetPI only supports JSON service account key. You can point to the J
 
 ## Use within shell
 
-This library provides a shell access as follows.
+This library provides a shell access.
+
+Examples first. I can get an annotated video like the demo above like:
+
+```shell
+$ TweetPI.py annotatedvideo --timeline POTUS --limit 50
+7 items to be downloaded
+(1/7) Downloaded: https://pbs.twimg.com/media/DnYrE1pX4AAMBbh.jpg
+(2/7) Downloaded: https://pbs.twimg.com/media/DnUHepUX0AEZU1u.jpg
+(3/7) Downloaded: https://pbs.twimg.com/media/DnaAWfsVsAAEuXG.jpg
+(4/7) Downloaded: https://pbs.twimg.com/media/DnaAWfoVAAAQNR6.jpg
+(5/7) Downloaded: https://pbs.twimg.com/media/DnaAWfqV4AAJ6_q.jpg
+(6/7) Downloaded: https://pbs.twimg.com/media/DnaAWfhWwAUdk11.jpg
+(7/7) Downloaded: https://pbs.twimg.com/media/DnU3UPDWsAsB7iX.jpg
+/home/tweetpi/timeline-POTUS.mp4
+```
+
+Remember, a lot of arguments are optional, so it can be as easy as:
+
+```shell
+$ TweetPI.py list -tl
+# This outputs images on my timeline
+{'indices': [20, 43], 'source_status_id': 1044026378746654720, 'media_url_https': 'https://pbs.twimg.com/media/Dn0gca6X0AAl0NS.jpg', 'sizes': {'small': {'h': 680, 'resize': 'fit', 'w': 382}, 'medium': {'h': 1200, 'resize': 'fit', 'w': 675}, 'thumb': {'h': 150, 'resize': 'crop', 'w': 150}, 'large': {'h': 1334, 'resize': 'fit', 'w': 750}}, 'id_str': '1044026361252401152', 'id': 1044026361252401152, 'display_url': 'pic.twitter.com/qeJI8ZKoxX', 'source_status_id_str': '1044026378746654720', 'source_user_id': 126581934, 'type': 'photo', 'source_user_id_str': '126581934', 'media_url': 'http://pbs.twimg.com/media/Dn0gca6X0AAl0NS.jpg', 'url': 'https://t.co/qeJI8ZKoxX', 'expanded_url': 'https://twitter.com/dearemon/status/1044026378746654720/photo/1'}
+{'indices': [39, 62], 'source_status_id': 1043885730798301184, 'media_url_https': 'https://pbs.twimg.com/media/Dnygh3oXUAATZ3u.jpg', 'sizes': {'small': {'h': 680, 'resize': 'fit', 'w': 510}, 'medium': {'h': 1200, 'resize': 'fit', 'w': 900}, 'thumb': {'h': 150, 'resize': 'crop', 'w': 150}, 'large': {'h': 2048, 'resize': 'fit', 'w': 1536}}, 'id_str': '1043885717372489728', 'id': 1043885717372489728, 'display_url': 'pic.twitter.com/NHc37bGipd', 'source_status_id_str': '1043885730798301184', 'source_user_id': 231652942, 'type': 'photo', 'source_user_id_str': '231652942', 'media_url': 'http://pbs.twimg.com/media/Dnygh3oXUAATZ3u.jpg', 'url': 'https://t.co/NHc37bGipd', 'expanded_url': 'https://twitter.com/dollywang05/status/1043885730798301184/photo/1'}
+$ TweetPI.py annotate -tl
+https://pbs.twimg.com/media/Dn0gca6X0AAl0NS.jpg: font, product, brand
+https://pbs.twimg.com/media/Dnygh3oXUAATZ3u.jpg: child, girl, arm, black hair, hand, toddler, japanese idol, product
+```
+
+While it can be as complex as:
+
+```shell
+$ TweetPI.py download --timeline POTUS --limit 50 --options options.json
+$ TweetPI.py annotatedvideo --timeline POTUS --limit 50 --size 640x320 --output test.mp4 --interval 1 --fontcolor 'rgb(255, 255, 255)' --fontsize 20
+/home/tweetpi/test.mp4
+```
+
+Acutally you don't need to execute `download` before you execute the `video` command; it will be automatically downloaded (no duplicate download!).
+
+If you want to deep further, I highly suggest you use `-h` to look up the help.
 
 ```
 usage: TweetPI.py [-h] {list,download,video,annotate,annotatedvideo} ...
@@ -102,9 +118,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  ```
+```
 
-You can always use `--help` to get help information for a specific function. For example,
+You can always use `-h` to get help information for a specific function. For reference, here they are (please consult with `-h` for up-to-date help info).
 
 ```shell
 $ TweetPI.py list --help
@@ -113,46 +129,103 @@ usage: TweetPI.py list [-h] --timeline [TIMELINE] [--limit LIMIT]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --timeline [TIMELINE]
+  --timeline [TIMELINE], -tl [TIMELINE]
                         from your home timeline or someone's user timeline
   --limit LIMIT         tweets limit
-  --options OPTIONS     Init config for TweetPI library in JSON format
+  --options OPTIONS     Init config for TweetPI library (JSON file path or
+                        JSON string)
+$ TweetPI.py download --help
+usage: TweetPI.py download [-h] --timeline [TIMELINE] [--limit LIMIT]
+                           [--options OPTIONS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --timeline [TIMELINE], -tl [TIMELINE]
+                        from your home timeline or someone's user timeline
+  --limit LIMIT         tweets limit
+  --options OPTIONS     Init config for TweetPI library (JSON file path or
+                        JSON string)
+$ TweetPI.py video --help
+usage: TweetPI.py video [-h] --timeline [TIMELINE] [--limit LIMIT]
+                        [--options OPTIONS] [--size SIZE] [--output OUTPUT]
+                        [--interval INTERVAL]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --timeline [TIMELINE], -tl [TIMELINE]
+                        from your home timeline or someone's user timeline
+  --limit LIMIT         tweets limit
+  --options OPTIONS     Init config for TweetPI library (JSON file path or
+                        JSON string)
+  --size SIZE           Video size, default: 1280x720
+  --output OUTPUT       Output filename, default: timeline-id.mp4
+  --interval INTERVAL   Seconds per image, default: 3
+$ TweetPI.py annotate --help
+usage: TweetPI.py annotate [-h] --timeline [TIMELINE] [--limit LIMIT]
+                           [--options OPTIONS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --timeline [TIMELINE], -tl [TIMELINE]
+                        from your home timeline or someone's user timeline
+  --limit LIMIT         tweets limit
+  --options OPTIONS     Init config for TweetPI library (JSON file path or
+                        JSON string)
+$ TweetPI.py annotatedvideo --help
+usage: TweetPI.py annotatedvideo [-h] --timeline [TIMELINE] [--limit LIMIT]
+                                 [--options OPTIONS] [--size SIZE]
+                                 [--output OUTPUT] [--interval INTERVAL]
+                                 [--fontfile FONTFILE] [--fontcolor FONTCOLOR]
+                                 [--fontsize FONTSIZE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --timeline [TIMELINE], -tl [TIMELINE]
+                        from your home timeline or someone's user timeline
+  --limit LIMIT         tweets limit
+  --options OPTIONS     Init config for TweetPI library (JSON file path or
+                        JSON string)
+  --size SIZE           Video size, default: 1280x720
+  --output OUTPUT       Output filename, default: timeline-id.mp4
+  --interval INTERVAL   Seconds per image, default: 3
+  --fontfile FONTFILE   Optional font file path (should be ttf file)
+  --fontcolor FONTCOLOR
+                        Optional font color, default: rgb(255, 0, 0)
+  --fontsize FONTSIZE   Optional font size, default: 50
 ```
-
-For example, I can get an annotated video like the demo above like:
-
-```shell
-$ TweetPI.py annotatedvideo --timeline POTUS --limit 50 --options '{"twitter_consumer_key":"...", "twitter_consumer_secret":"...", "twitter_access_token":"...", "twitter_access_secret":"...", "google_key_json":"gapi.json"}'
-7 items to be downloaded
-(1/7) Downloaded: https://pbs.twimg.com/media/DnYrE1pX4AAMBbh.jpg
-(2/7) Downloaded: https://pbs.twimg.com/media/DnUHepUX0AEZU1u.jpg
-(3/7) Downloaded: https://pbs.twimg.com/media/DnaAWfsVsAAEuXG.jpg
-(4/7) Downloaded: https://pbs.twimg.com/media/DnaAWfoVAAAQNR6.jpg
-(5/7) Downloaded: https://pbs.twimg.com/media/DnaAWfqV4AAJ6_q.jpg
-(6/7) Downloaded: https://pbs.twimg.com/media/DnaAWfhWwAUdk11.jpg
-(7/7) Downloaded: https://pbs.twimg.com/media/DnU3UPDWsAsB7iX.jpg
-/home/tweetpi/timeline-POTUS.mp4
-```
-
 Currently images on Twitter will be downloaded to the working directory by default.
 
 ## Use as a library
 
-You can refer to the shell code in TweetPI.py. Also you can refer to [README_demo.py](README_demo.py).
+To make use of the library in Python, either:
 
-```python
-from TweetPI import TweetPI
+- Refer to [README_demo.py](README_demo.py);
+- Refer to the shell code in TweetPI.py.
 
-tpi = TweetPI({"twitter_consumer_key":"...", "twitter_consumer_secret":"...", "twitter_access_token":"...", "twitter_access_secret":"...", "google_key_json":"gapi.json"})
+You can read the following Design diagram to learn about what's inside the library.
 
-try:
-    photolist = tpi.get_timeline(username="POTUS", limit=50)
-except Exception as e:
-    # Error handling
-    print(e)
+## Design
 
-print(photolist.get_list())
 ```
+ +-------+ .get_timeline() +---------+      .photos       +-----------+
+ |TweetPI+---------------->+PhotoList+------------------->+  Photos   |
+ +-------+                 +---------+                    +-----------+
+                                |                               |
+                                | .download_all()               | .download()
+                                |                               |
+                                |                               |
+                                | .generate_video()             | LocalPhoto.resize()
+                                |                               |
+                                |                               |
+                                | .get_annotations()            | .get_annotation()
+                                |                               |
+                                |                               |
+                                | .generate_annotated_video()   | LocalPhoto.add_annotation()
+                                |                               |
+                                +                               +
+```
+
+\* `LocalPhoto` should be redesigned as `PhotoEditor(Photo)`. Currently `LocalPhoto` is intended to be a "private" class.
 
 ## License
 
