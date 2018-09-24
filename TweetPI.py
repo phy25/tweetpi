@@ -134,7 +134,7 @@ class Photo(Mapping):
                 raise Exception("Image download with wrong HTTP code: "+response.getcode())
 
     def get_annotation_request(self, force=False):
-        if self.annotation and not self.force:
+        if self.annotation and not force:
             return None
 
         from google.cloud import vision
