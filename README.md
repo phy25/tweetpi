@@ -10,6 +10,7 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Contents
 
+- New in upcoming v1.0
 - [Breaking changes](#breaking-changes)
 - [Install](#install)
 - [Obtain service tokens](#obtain-service-tokens)
@@ -18,6 +19,13 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 - [Design](#design)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
+
+## New in upcoming v1.0
+
+- Do two database implementations with MySQL and MongoDB
+- Organize detail information of every transaction the user may run using your system, and store all relevant information for everytime a user uses your application
+- API and program to: search for certain words and retrieve which user/session that has this work in it. For example, search for ‘basketball”, and get results of which user had Basketball in their sessions
+- API and program to: show collective statistics about overall usage of the system. For example: number of images per feed, most popular descriptors
 
 ## Breaking changes
 
