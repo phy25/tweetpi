@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from TweetPI import TweetPI
+from TweetPI import TweetPI, video
 import sys
 
 # Change keys below or in `options.json` before you execute!
@@ -13,8 +13,8 @@ tpi = TweetPI(o)
 
 try:
     # list
-    photolist = tpi.get_timeline(username="POTUS", page=1, limit=50)
-    print(photolist.get_list())
+    photolist = tpi.get_timeline(username="football", page=1, limit=50)
+    print(photolist)
     # download
     photolist.download_all(shell=True)
     # annotate
@@ -22,10 +22,10 @@ try:
     for t in photolist.get_list():
         print('{}: {}'.format(t.remote_url, ", ".join([a.description for a in t.annotation.label_annotations])))
     # video
-    videopath = photolist.generate_video(name='video1.mp4', size='1080x720', shell=True, interval=3)
+    videopath = video.generate_video(photos=photolist, name='video1.mp4', size='1080x720', shell=True, interval=3)
     print(videopath)
     # annotated video
-    videopath2 = photolist.generate_annotated_video(name='video2.mp4', size='1080x720', shell=True, font_color='rgb(0,0,0)', font_file='Roboto-Regular.ttf', interval=3, font_size=30)
+    videopath2 = video.generate_annotated_video(photos=photolist, name='video2.mp4', size='1080x720', shell=True, font_color='rgb(255,0,0)', font_file='Roboto-Regular.ttf', interval=3, font_size=30)
     print(videopath2)
 except Exception as e:
     # Error handling
