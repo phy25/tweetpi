@@ -4,7 +4,7 @@ import urllib.request
 import tempfile
 import subprocess
 from google.cloud import vision
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFile
 from math import floor
 import textwrap
 import uuid
@@ -161,7 +161,7 @@ class ImOp():
     def __init__(self, im):
         if isinstance(im, Photo):
             im = im.get_im()
-        if not isinstance(im, Image):
+        if not isinstance(im, (ImageFile.ImageFile, Image.Image)):
             raise TypeError("ImOp should have a PLI.Image")
         self.im = im
 
