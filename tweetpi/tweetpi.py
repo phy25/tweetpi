@@ -14,6 +14,8 @@ class TweetPI:
     db_enable = False
     db_uri = ""
     db_client = None
+
+
     def __init__(self, options):
         keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder", "_db_enable", "_db_uri"]
         if type(options) == dict:

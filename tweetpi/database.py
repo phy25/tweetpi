@@ -1,4 +1,10 @@
 from abc import ABCMeta, abstractmethod
+from urllib.parse import urlparse
+import uuid
+import hashlib
+import platform
+from contextlib import contextmanager
+
 try:
     import pymysql
     MYSQL_READY = True
@@ -29,22 +35,43 @@ def init(db_uri):
 class DBClientAbstract:
     __metaclass__ = ABCMeta
     session_id = ""
+    manual_connection = False
 
-    @abstractmethod
-    def __init__(self, uri):
+    def __init__(self, uri, manual_connection=False):
         self.session_id = self.get_fingerprint()
-        pass
+        self.manual_connection = manual_connection
 
     def get_fingerprint(self):
-        return ""
+        sb = []
+        sb.append(platform.node())
+        sb.append(platform.architecture()[0])
+        sb.append(platform.architecture()[1])
+        sb.append(platform.machine())
+        sb.append(platform.processor())
+        sb.append(platform.system())
+        sb.append(str(uuid.getnode())) # MAC address
+        text = '#'.join(sb)
+        return hashlib.md5(text).hexdigest()[0:16]
 
     @abstractmethod
     def install(self):
         pass
 
     @abstractmethod
+    def connect(self):
+        pass
+
+    @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
     def log(self, type, keyword, key, text, metadata):
         # session_id, timestamp
+        pass
+
+    @abstractmethod
+    def batch_logs(self, data):
         pass
 
     @abstractmethod
@@ -60,9 +87,41 @@ class DBClientAbstract:
         pass
 
 class MongoDBClient(DBClientAbstract):
-    def __init__(self, uri):
-        pass
+    def __init__(self, uri, manual_connection=False):
+        super().__init__(uri, manual_connection)
 
 class MySQLDBClient(DBClientAbstract):
-    def __init__(self, uri):
-        pass
+    conn = None
+
+    def __init__(self, uri, manual_connection=False):
+        super().__init__(uri, manual_connection)
+        URL_CONFIG = urlparse(uri)
+
+        self.conn       = pymysql.connect(
+            host        = URL_CONFIG.hostname,
+            port        = URL_CONFIG.port,
+            user        = URL_CONFIG.username,
+            password    = URL_CONFIG.password,
+            db          = URL_CONFIG.path[1:],
+            charset     = 'utf8mb4',
+            autocommit  = True,
+            cursorclass = pymysql.cursors.DictCursor
+        )
+
+    @contextmanager
+    def get_connection(self):
+        if not self.conn:
+            self.connect()
+        try:
+            yield self.conn
+        except Exception:
+            self.conn.rollback()
+            raise
+        else:
+            self.conn.commit()
+        finally:
+            self.close()
+
+    def log(self, type, keyword, key, text, metadata):
+        with self.get_connection() as conn:
+            pass
