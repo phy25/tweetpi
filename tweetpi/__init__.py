@@ -11,8 +11,6 @@ __version__ = '0.3'
 __author__ = 'Phy25'
 __license__ = 'MIT'
 
-from tweetpi.photo import Photo
-from tweetpi.localphoto import LocalPhoto
-from tweetpi.photolist import PhotoList
+from tweetpi.photo import Photo, PhotoList, ImOp
 from tweetpi.tweetpi import TweetPI
 from tweetpi.shell import main
