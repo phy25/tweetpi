@@ -2,7 +2,6 @@ import os, sys
 import shutil
 import urllib.request
 import tempfile
-import subprocess
 from google.cloud import vision
 from PIL import Image, ImageDraw, ImageFile
 from math import floor
@@ -105,6 +104,7 @@ class Photo(Mapping):
 class PhotoList(list):
     source = "unknown"
     parent = None
+
     def __init__(self, photos, source="", parent=None):
         photos = [o for o in set(photos)]
         # unifiy photos
@@ -134,6 +134,13 @@ class PhotoList(list):
         """@deprecated"""
         return self
 
+    def set_photos(self, value):
+        """@deprecated"""
+        self[:] = []
+        self.extend(value)
+
+    photos = property(get_list, set_photos)
+
     def fetch_annotations(self):
         # figure out what shoule be requested
         photolist = []
@@ -153,6 +160,19 @@ class PhotoList(list):
     def get_annotations(self):
         self.fetch_annotations()
         return self.get_list()
+
+    def generate_video(self, *args, **kwargs):
+        import warnings
+        from tweetpi import video
+        warnings.warn("Please use video.generate_video instead", DeprecationWarning)
+        return video.generate_video(self, *args, **kwargs)
+
+    def generate_annotated_video(self, *args, **kwargs):
+        import warnings
+        from tweetpi import video
+        warnings.warn("Please use video.generate_annotated_video instead", DeprecationWarning)
+        return video.generate_annotated_video(self, *args, **kwargs)
+
 
 class ImOp():
     """Chainable local image operation"""
