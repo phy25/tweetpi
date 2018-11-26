@@ -7,10 +7,11 @@ Tweet Photo Insight: Python library to get photos in Twitter feed, with a video 
 @deps google-cloud-vision
 @deps Pillow
 """
-__version__ = '0.3'
+__version__ = '1.0'
 __author__ = 'Phy25'
 __license__ = 'MIT'
 
 from tweetpi.photo import Photo, PhotoList, ImOp
 from tweetpi.tweetpi import TweetPI
 from tweetpi.shell import main
+from tweetpi import video

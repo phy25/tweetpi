@@ -1,6 +1,6 @@
 import os
 import tempfile
-from photo import ImOp
+from tweetpi.photo import ImOp
 import subprocess
 from PIL import ImageFont
 
