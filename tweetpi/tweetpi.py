@@ -1,6 +1,6 @@
 import tweepy
 
-from tweetpi import Photo, LocalPhoto, PhotoList
+from tweetpi import Photo, PhotoList
 
 class TweetPI:
     twitter_consumer_key = None
@@ -36,9 +36,11 @@ class TweetPI:
 
     def get_timeline(self, username, page, limit, order_latest=False):
         if username == "__home__":
-            tweets = self.twitter_api.home_timeline(count=limit, page=page, trim_user=True, tweet_mode="extended")
+            tweets = self.twitter_api.home_timeline(
+                count=limit, page=page, trim_user=True, tweet_mode="extended")
         else:
-            tweets = self.twitter_api.user_timeline(id=username, count=limit, page=page, trim_user=True, tweet_mode="extended")
+            tweets = self.twitter_api.user_timeline(
+                id=username, count=limit, page=page, trim_user=True, tweet_mode="extended")
         photos = []
         if not order_latest:
             tweets.reverse()
@@ -50,4 +52,4 @@ class TweetPI:
             except AttributeError:
                 pass
 
-        return PhotoList(list=photos, source="timeline-"+username, parent=self)
+        return PhotoList(photos=photos, source="timeline-"+username, parent=self)
