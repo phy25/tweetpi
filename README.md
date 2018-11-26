@@ -6,7 +6,7 @@ Python library to get photos in Twitter feed, with a video and photo annotations
 
 This is very experimental, and thus the API may change at any time.
 
-Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
+Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Contents
 
@@ -23,7 +23,9 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ### v1.0
 
-- Video-related functions is no longer implemented as methods in `PhotoList`. They are now in a new module called `video`. So we have ``tweetpi.video.generate_video`, `tweetpi.video.generate_annotated_video`, with a new first argument receiving a PhotoList. This gives us fine-grained control over video tools check. The old method is kept in `PhotoList` with a deprecation notice.
+**Shell usage has not been changed**, and you can use it in the same way as before. The following changes is related to programmers.
+
+- Video-related functions is no longer implemented as methods in `PhotoList`. They are now in a new module called `video`. So we have `tweetpi.video.generate_video`, `tweetpi.video.generate_annotated_video`, with a new first argument receiving a PhotoList. This gives us fine-grained control over video tools check. The old method is kept in `PhotoList` with a deprecation notice.
 - `PhotoList.photos` is deprecated. You are encourged to use PhotoList to iterate directly as a list. `PhotoList.get_list()`,`PhotoList.photos` is still kept for backward compatibility.
 - Under the hood, `localphoto` is removed, instead `photo.ImOp` in introduced with (somewhat) chainable usage.
 
