@@ -14,4 +14,4 @@ __license__ = 'MIT'
 from tweetpi.photo import Photo, PhotoList, ImOp
 from tweetpi.tweetpi import TweetPI
 from tweetpi.shell import main
-from tweetpi import video
+from tweetpi import video, database

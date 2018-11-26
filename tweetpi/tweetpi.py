@@ -11,8 +11,11 @@ class TweetPI:
     local_folder = None
     twitter_api = None
     gvision_client = None
+    db_enable = False
+    db_uri = ""
+    db_client = None
     def __init__(self, options):
-        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder"]
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder", "_db_enable", "_db_uri"]
         if type(options) == dict:
             for k in keys:
                 optional = k.startswith("_")
@@ -30,9 +33,14 @@ class TweetPI:
         # Init Google Vision API
         from google.oauth2 import service_account
         credentials = service_account.Credentials.from_service_account_file(self.google_key_json)
-        #scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/cloud-platform'])
+        # scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/cloud-platform'])
         from google.cloud import vision
         self.gvision_client = vision.ImageAnnotatorClient(credentials=credentials)
+
+        # Init Database
+        if self.db_enable:
+            from tweetpi import database
+            self.db_client = database.init(self.db_uri)
 
     def get_timeline(self, username, page, limit, order_latest=False):
         if username == "__home__":
