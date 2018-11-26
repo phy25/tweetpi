@@ -1,6 +1,6 @@
 import tweepy
 
-from tweetpi import Photo, PhotoList
+from tweetpi import Photo, PhotoList, database
 
 class TweetPI:
     twitter_consumer_key = None
@@ -41,8 +41,9 @@ class TweetPI:
 
         # Init Database
         if self.db_enable:
-            from tweetpi import database
             self.db_client = database.init(self.db_uri)
+        else:
+            self.db_client = database.NoDBClient()
 
     def get_timeline(self, username, page, limit, order_latest=False):
         if username == "__home__":

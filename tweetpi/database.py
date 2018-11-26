@@ -34,10 +34,12 @@ def init(db_uri):
 
 class DBClientAbstract:
     __metaclass__ = ABCMeta
+    uri = ""
     session_id = ""
     manual_connection = False
 
-    def __init__(self, uri, manual_connection=False):
+    def __init__(self, uri=None, manual_connection=False):
+        self.uri = uri
         self.session_id = self.get_fingerprint()
         self.manual_connection = manual_connection
 
@@ -93,9 +95,8 @@ class MongoDBClient(DBClientAbstract):
 class MySQLDBClient(DBClientAbstract):
     conn = None
 
-    def __init__(self, uri, manual_connection=False):
-        super().__init__(uri, manual_connection)
-        URL_CONFIG = urlparse(uri)
+    def connect(self):
+        URL_CONFIG = urlparse(self.uri)
 
         self.conn       = pymysql.connect(
             host        = URL_CONFIG.hostname,
@@ -107,6 +108,10 @@ class MySQLDBClient(DBClientAbstract):
             autocommit  = True,
             cursorclass = pymysql.cursors.DictCursor
         )
+
+    def close(self):
+        self.conn.close()
+        self.conn = None
 
     @contextmanager
     def get_connection(self):
@@ -122,6 +127,56 @@ class MySQLDBClient(DBClientAbstract):
         finally:
             self.close()
 
+    def install(self):
+        pass
+
     def log(self, type, keyword, key, text, metadata):
         with self.get_connection() as conn:
-            pass
+            self._log(conn, type, keyword, key, text, metadata)
+
+    def _log(self, conn, type, keyword, key, text, metadata):
+        pass
+
+    def batch_logs(self, data):
+        with self.get_connection() as conn:
+            for d in data:
+                self._log(conn, **d)
+
+    def search_by_keyword(self, keyword):
+        pass
+
+    def get_total_by_type(self):
+        pass
+
+    def get_annotation_keywords_list(self, limit=20):
+        pass
+
+class NoDBClient(DBClientAbstract):
+    def connect(self):
+        pass
+
+    def close(self):
+        pass
+
+    def install(self):
+        pass
+
+    def log(self, type, keyword, key, text="", metadata={}):
+        self._log(type, keyword, key, text, metadata)
+
+    def _log(self, type, keyword, key, text="", metadata={}):
+        print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata))
+        pass
+
+    def batch_logs(self, data):
+        for d in data:
+            self._log(**d)
+
+    def search_by_keyword(self, keyword):
+        return []
+
+    def get_total_by_type(self):
+        return {}
+
+    def get_annotation_keywords_list(self, limit=20):
+        return []
