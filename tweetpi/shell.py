@@ -1,6 +1,6 @@
 import json
 import sys
-from tweetpi import TweetPI, __version__ as tweetpi_version
+from tweetpi import TweetPI, video, __version__ as tweetpi_version
 
 def shell_print_exception(error_name=None):
     import traceback
@@ -64,7 +64,7 @@ def shell_video(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_video(name=args.output, size=size, shell=True, interval=args.interval)
+            result = video.generate_video(photos=photolist, name=args.output, size=size, shell=True, interval=args.interval)
             print(result)
         else:
             sys.exit(1)
@@ -97,7 +97,7 @@ def shell_annotatedvideo(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = photolist.generate_annotated_video(name=args.output, size=size, shell=True, font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize)
+            result = video.generate_annotated_video(photos=photolist, name=args.output, size=size, shell=True, font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize)
             print(result)
         else:
             sys.exit(1)

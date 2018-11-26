@@ -21,6 +21,12 @@ Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/1
 
 ## Breaking changes
 
+### v1.0
+
+- Video-related functions is no longer implemented as methods in `PhotoList`. They are now in a new module called `video`. So we have ``tweetpi.video.generate_video`, `tweetpi.video.generate_annotated_video`, with a new first argument receiving a PhotoList. This gives us fine-grained control over video tools check. The old method is kept in `PhotoList` with a deprecation notice.
+- `PhotoList.photos` is deprecated. You are encourged to use PhotoList to iterate directly as a list. `PhotoList.get_list()`,`PhotoList.photos` is still kept for backward compatibility.
+- Under the hood, `localphoto` is removed, instead `photo.ImOp` in introduced with (somewhat) chainable usage.
+
 ### v0.2
 
 - `PhotoList.l` is changed to `PhotoList.photos`. Before it is encourged to use `PhotoList.get_list()`, but since we want to be more pythonic, `PhotoList.photos` will be supported in the future. If it is necessary to use function getter/setter, `PhotoList.photos` will be kept available.
@@ -247,28 +253,22 @@ You can read the following [Design diagram](#design) to learn about what's insid
 
 ## Design
 
-The following diagram is the current design of the library. Actually it's bad to implement operation methods directly on data objects, so this needs to be changed.
+The following diagram is the current design of the library.
 
 ```
- +-------+ .get_timeline() +---------+      .photos       +-----------+
+ +-------+ .get_timeline() +---------+    list(Photos)    +-----------+
  |TweetPI+---------------->+PhotoList+------------------->+  Photos   |
  +-------+                 +---------+                    +-----------+
                                 |                               |
                                 | .download_all()               | .download()
                                 |                               |
                                 |                               |
-                                | .generate_video()             | LocalPhoto.resize()
-                                |                               |
-                                |                               |
                                 | .get_annotations()            | .get_annotation()
-                                |                               |
-                                |                               |
-                                | .generate_annotated_video()   | LocalPhoto.add_annotation()
-                                |                               |
-                                +                               +
+                                |                               +
+                                |
+                                +----> video.generate_video()
+                                       video.generate_annotated_video()
 ```
-
-\* `LocalPhoto` should be redesigned as `PhotoEditor(Photo)`. Currently `LocalPhoto` is intended to be a "private" class.
 
 ## License
 
