@@ -2,6 +2,8 @@
 
 Python library to get photos in Twitter feed, with a video and photo annotations. Part of EC601 as Mini Project 1.
 
+[![asciicast](https://asciinema.org/a/214612.svg)](https://asciinema.org/a/214612)
+
 ![DEMO of annotated video](README_demo.gif)
 
 This is very experimental, and thus the API may change at any time.
@@ -195,7 +197,7 @@ $ tweetpi.py search_by_keyword person
 
 ## Use within shell
 
-This library provides a shell access.
+This library provides a shell access. For demo you can [see it on asciinema](https://asciinema.org/a/214612).
 
 Examples first. I can get an annotated video like the demo above like:
 
