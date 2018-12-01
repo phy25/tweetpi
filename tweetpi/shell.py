@@ -110,6 +110,23 @@ def shell_annotatedvideo(args):
         sys.exit(2)
 
 
+def shell_get_total_by_type(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.get_total_by_type()
+            table = "{:>16} {:>8}"
+            print(table.format("Type", "Count"))
+            print(table.format("================", "========"))
+            for i in result:
+                print(table.format(i["_id"], i["count"]))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+
 def main(argv=None):
     import argparse
     if not argv:
@@ -157,6 +174,10 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(255, 0, 0)", default="rgb(255, 0, 0)")
     parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 40", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
+
+    parser_get_total_by_type = subparsers.add_parser('get_total_by_type', help='get total by type in db')
+    parser_get_total_by_type.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_total_by_type.set_defaults(func=shell_get_total_by_type)
 
     if len(argv) == 0:
         argparser.print_help(sys.stderr)

@@ -121,24 +121,25 @@ class MongoDBClient(DBClientAbstract):
 
     def log(self, type, keyword, key, text="", metadata={}):
         with self.get_connection() as conn:
-            self._log(conn, type, keyword, key, text, metadata)
+            doc = self._log_doc(type, keyword, key, text, metadata)
+            conn[self.db_name]["logs"].insert_one(doc)
 
-    def _log(self, conn, type, keyword, key, text="", metadata={}):
+    def _log_doc(self, type, keyword, key, text="", metadata={}):
         if isinstance(keyword, str):
             keyword = [keyword]
-        doc = {"type": type, "keyword": keyword, "key": key, "text": text, "metadata": metadata, "session_id": self.session_id}
-        conn[self.db_name]["logs"].insert_one(doc)
+        return {"type": type, "keyword": keyword, "key": key, "text": text, "metadata": metadata, "session_id": self.session_id, "timestamp": time.time()}
 
     def batch_logs(self, data):
         with self.get_connection() as conn:
-            for d in data:
-                self._log(conn, **d)
+            conn[self.db_name]["logs"].insert_many([self._log_doc(**d) for d in data])
 
     def search_by_keyword(self, keyword):
-        return []
+        with self.get_connection() as conn:
+            return conn[self.db_name]["logs"].find({"keyword": {"$in": ["Mike"]}})
 
     def get_total_by_type(self):
-        return {}
+        with self.get_connection() as conn:
+            return list(conn[self.db_name]["logs"].aggregate([{"$group": {"_id": "$type", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}]))
 
     def get_annotation_keywords_list(self, limit=20):
         return []
