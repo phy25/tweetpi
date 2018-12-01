@@ -5,6 +5,7 @@ import hashlib
 import platform
 import sys
 from contextlib import contextmanager
+import time
 
 try:
     import pymysql
@@ -56,7 +57,7 @@ class DBClientAbstract:
         sb.append(platform.system())
         sb.append(str(uuid.getnode())) # MAC address
         text = '#'.join(sb)
-        return hashlib.md5(text.encode('utf-8')).hexdigest()[0:16]
+        return "{}_{:.0f}".format(hashlib.md5(text.encode('utf-8')).hexdigest()[0:16], time.time())
 
     @abstractmethod
     def install(self):
