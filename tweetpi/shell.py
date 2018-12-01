@@ -1,12 +1,13 @@
 import json
 import sys
+import os
 from tweetpi import TweetPI, video, __version__ as tweetpi_version
 
 def shell_print_exception(error_name=None):
     import traceback
     if error_name:
         print('=== {} ==='.format(error_name))
-    traceback.print_exc(limit=1)
+    traceback.print_exc(limit=2)
 
 def shell_init_lib(args):
     o = {}
@@ -20,6 +21,8 @@ def shell_init_lib(args):
         try:
             with open(options_str, "r") as fp:
                 o = json.load(fp)
+            if not "conf_folder" in o:
+                o["conf_folder"] = os.path.dirname(os.path.abspath(options_str))
         except IOError:
             o = json.loads(options_str)
     except Exception:
@@ -64,7 +67,7 @@ def shell_video(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = video.generate_video(photos=photolist, name=args.output, size=size, shell=True, interval=args.interval)
+            result = video.generate_video(photos=photolist, name=args.output, size=size, shell=True, interval=args.interval, parent=tpi)
             print(result)
         else:
             sys.exit(1)
@@ -97,13 +100,90 @@ def shell_annotatedvideo(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = video.generate_annotated_video(photos=photolist, name=args.output, size=size, shell=True, font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize)
+            result = video.generate_annotated_video(photos=photolist, name=args.output, size=size, shell=True,
+                                                    font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize, parent=tpi)
             print(result)
         else:
             sys.exit(1)
     except Exception:
         shell_print_exception()
         sys.exit(2)
+
+
+def shell_get_total_by_type(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.get_total_by_type()
+            table = "{:>16} {:>8}"
+            print(table.format("Type", "Count"))
+            print(table.format("-"*16, "-"*8))
+            for i in result:
+                print(table.format(i["type"], i["count"]))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+def shell_get_annotation_keywords_list(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.get_annotation_keywords_list(limit=args.limit)
+            table = "{:>32} {:>8}"
+            print(table.format("Keyword", "Count"))
+            print(table.format("-"*32, "-"*8))
+            for i in result:
+                print(table.format(i["keyword"], i["count"]))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+def shell_get_total_by_session_id(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.get_total_by_session_id(limit=args.limit)
+            table = "{:>32} {:>8}"
+            print(table.format("Session ID", "Count"))
+            print(table.format("-"*32, "-"*8))
+            for i in result:
+                print(table.format(i["session_id"], i["count"]))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+def shell_search_by_keyword(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.search_by_keyword(keyword=args.KEYWORD)
+            for i in result:
+                print(i)
+            print("{} results in total".format(len(result)))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+
+def shell_install_db(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            tpi.db_client.install()
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
 
 def main(argv=None):
     import argparse
@@ -152,6 +232,30 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--fontcolor', help="Optional font color, default: rgb(255, 0, 0)", default="rgb(255, 0, 0)")
     parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 40", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
+
+    parser_get_annotation_keywords_list = subparsers.add_parser('get_annotation_keywords_list', help='get annotation keywords list in db')
+    parser_get_annotation_keywords_list.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_annotation_keywords_list.add_argument('--limit', help="results limit", type=int, default=20)
+    parser_get_annotation_keywords_list.set_defaults(func=shell_get_annotation_keywords_list)
+
+    parser_get_total_by_session_id = subparsers.add_parser('get_total_by_session_id', help='get total by session_id in db')
+    parser_get_total_by_session_id.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_total_by_session_id.add_argument('--limit', help="results limit", type=int, default=20)
+    parser_get_total_by_session_id.set_defaults(func=shell_get_total_by_session_id)
+
+    parser_get_total_by_type = subparsers.add_parser('get_total_by_type', help='get total by type in db')
+    parser_get_total_by_type.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_total_by_type.set_defaults(func=shell_get_total_by_type)
+
+    parser_search_by_keyword = subparsers.add_parser('search_by_keyword', help='search logs by keyword in db')
+    parser_search_by_keyword.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_search_by_keyword.add_argument('KEYWORD', help="word searched in keyword field")
+    parser_search_by_keyword.set_defaults(func=shell_search_by_keyword)
+
+    parser_install_db = subparsers.add_parser('install_db', help='search logs by keyword in db')
+    parser_install_db.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_install_db.set_defaults(func=shell_install_db)
+
 
     if len(argv) == 0:
         argparser.print_help(sys.stderr)

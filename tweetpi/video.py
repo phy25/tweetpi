@@ -5,8 +5,14 @@ import subprocess
 from PIL import ImageFont
 
 
-def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3):
-    fullpath = os.path.abspath(name)
+def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None, photos_reference=None):
+    if parent:
+        fullpath = os.path.abspath(name)
+    else:
+        fullpath = os.path.join(parent.local_folder, name)
+
+    if not len(files):
+        raise Exception("No images available for video creation")
 
     # generate concat files
     # https://trac.ffmpeg.org/wiki/Slideshow
@@ -25,11 +31,18 @@ def _generate_video_from_path(files, name, size="1280x720", shell=False, interva
         os.unlink(concat_path)
         for f in files:
             os.unlink(f)
+        if parent:
+            if photos_reference:
+                parent.db_client.log(type="video", keyword="",
+                                     key=name, text="", metadata={"photos":[i.remote_url for i in photos_reference]})
+            else:
+                parent.db_client.log(type="video", keyword="",
+                                     key=name, text="", metadata={"files":files})
 
     return fullpath
 
 
-def generate_video(photos, name=None, size="1280x720", shell=False, interval=3):
+def generate_video(photos, name=None, size="1280x720", shell=False, interval=3, parent=None):
     """
     Generate a simple video
     photos: PhotoList
@@ -47,10 +60,11 @@ def generate_video(photos, name=None, size="1280x720", shell=False, interval=3):
         im = ImOp(p).resize(width=int(sizes[0]), height=int(sizes[1]))
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent, photos_reference=photos)
 
 
-def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3, font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40):
+def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3,
+                             font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40, parent=None):
     if not name:
         name = photos.source+".mp4"
     sizes = size.split('x')
@@ -61,7 +75,11 @@ def generate_annotated_video(photos, name=None, size="1280x720", shell=False, in
 
     photos.fetch_annotations()
     files = []
-    font = ImageFont.truetype(font_file, size=font_size)
+    if parent:
+        conf_path = parent.conf_folder
+    else:
+        conf_path = ""
+    font = ImageFont.truetype(os.path.join(conf_path, font_file), size=font_size)
 
     for p in photos:
         message = ", ".join([l.description for l in p.annotation.label_annotations])
@@ -69,4 +87,4 @@ def generate_annotated_video(photos, name=None, size="1280x720", shell=False, in
         im.annotate(message, font, font_size, font_color)
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent, photos_reference=photos)

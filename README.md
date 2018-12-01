@@ -2,6 +2,8 @@
 
 Python library to get photos in Twitter feed, with a video and photo annotations. Part of EC601 as Mini Project 1.
 
+[![asciicast](https://asciinema.org/a/214612.svg)](https://asciinema.org/a/214612)
+
 ![DEMO of annotated video](README_demo.gif)
 
 This is very experimental, and thus the API may change at any time.
@@ -13,6 +15,7 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 - [Breaking changes](#breaking-changes)
 - [Install](#install)
 - [Obtain service tokens](#obtain-service-tokens)
+- [Database config](#database-config)
 - [Use within shell](#use-within-shell)
 - [Use as a library](#use-as-a-library)
 - [Design](#design)
@@ -20,6 +23,15 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 - [Acknowledgements](#acknowledgements)
 
 ## Breaking changes
+
+## v1.1
+
+We completed the following new features. If you don't want to use it, just keep `db_enable` config to None or False.
+
+- Do two database implementations with MySQL and MongoDB
+- Organize detail information of every transaction the user may run using your system, and store all relevant information for everytime a user uses your application
+- API and program to: search for certain words and retrieve which user/session that has this work in it. For example, search for ‘basketball”, and get results of which user had Basketball in their sessions
+- API and program to: show collective statistics about overall usage of the system. For example: number of images per feed, most popular descriptors
 
 ### v1.0
 
@@ -37,7 +49,9 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 
 ### Ubuntu
 
-This library is currently tested within Ubuntu. You need to install Python (tested with Python 3.5, 3.7.0 now), ffmpeg, and respective Python library.
+This library is currently tested within Ubuntu. You need to have Python installed (tested with Python 3.5, 3.7.0 now) first.
+
+Git will be used to fetch code from here. The following bash command also installs ffmpeg, and respective Python packages.
 
 ```shell
 $ git clone https://github.com/phy25/tweetpi.git
@@ -48,14 +62,16 @@ $ pip install -r requirements.txt --user
 
 ### Windows
 
-It's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10); it's the same as on Ubuntu. But if you need to...
+It's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10); it's the same as on Ubuntu.
+
+However, if you really need to install this in native Windows...
 
 ```shell
 > git clone https://github.com/phy25/tweetpi.git
 > cd tweetpi
 > pip install -r requirements.txt --user
 ```
-And finally, **grab an copy of `ffmpeg.exe` inside `tweetpi` folder** (You can [download here](https://ffmpeg.zeranoe.com/builds/)), or ensure `ffmpeg` is in PATH and thus is execuable from the shell.
+And finally, **grab an copy of `ffmpeg.exe` and put it inside `tweetpi` folder** (You can [download here](https://ffmpeg.zeranoe.com/builds/)), or ensure `ffmpeg` is in PATH and thus is execuable from the shell.
 
 ## Obtain service tokens
 
@@ -98,9 +114,90 @@ Then you need to obtain a service account key (in JSON). If you don't have one, 
 
 Currently TweetPI only supports JSON service account key. You can point to the JSON file by filling `options.google_key_json` (relative to working directory, e.g. `My Project f92e3234.json`).
 
+## Database config
+
+Database in this project is used as a logging mechanism. There are two database config:
+
+- `db_enable` receives True/False.
+    - If it is False, nothing happens regarding database.
+    - If it is True but db_uri is empty, each time database will be written, it will print data to stderr instead.
+- `db_uri` is a database URI (see below).
+
+Currently we provide two types of database support: MongoDB, and MySQL (MariaDB).
+
+### MongoDB
+
+`db_uri` can be set like "mongodb://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mongodb://demouser:password@localhost/demodb".
+
+You don't need to run `tweetpi.py install_db` before you start using it.
+
+If you need a temporary MongoDB server, I would recommend you to sign up one for free at https://mlab.com/.
+
+### MySQL
+
+`db_uri` can be set like "mysql://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mysql://demouser:password@localhost/demodb". You can replace mysql with mysql+pymysql. For MariaDB, please still use mysql as the protocal name.
+
+Before you start using it please run `tweetpi.py install_db` in shell or `tweetpiInstance.dbclient.install()` to create approriate tables in the database, or it will report errors.
+
+If you need a temporary MySQL/MariaDB server (portable), you can install XAMPP's portable server at https://www.apachefriends.org/.
+
+### Query tools
+
+There are several functions in the shell for you to make use of the logs data.
+
+- `tweetpi.py install_db` install database tables if necessary
+- `tweetpi.py get_annotation_keywords_list` get annotation keywords list in db
+- `tweetpi.py get_total_by_type` get total by type in db
+- `tweetpi.py get_total_by_session_id` get total by session_id in db
+- `tweetpi.py search_by_keyword KEYWORD` search logs by keyword in db
+
+Example:
+
+```
+$ tweetpi.py get_total_by_session_id
+                      Session ID    Count
+-------------------------------- --------
+     c218d8f8d25cb11a_1543630001        7
+     c218d8f8d25cb11a_1543628419        7
+$ tweetpi.py get_annotation_keywords_list
+                         Keyword    Count
+-------------------------------- --------
+                          person       10
+                 black and white       10
+                            text       10
+                         cartoon       10
+                            font       10
+                         drawing        8
+                            line        6
+                  human behavior        6
+                           black        4
+                           white        4
+                         emotion        4
+                          mammal        4
+                        line art        4
+                           paper        2
+                          design        2
+                         product        2
+                         diagram        2
+                            head        2
+$ tweetpi.py get_total_by_type
+            Type    Count
+---------------- --------
+        annotate       10
+           video        2
+    get_timeline        2
+$ tweetpi.py search_by_keyword person
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 2, 'key': 'https://pbs.twimg.com/media/DssdKgqVsAAXw0y.jpg', 'keyword': 'text,white,black,person,cartoon,black and white,mammal,line art,font,head', 'type': 'annotate', 'metadata': '{}', 'text': 'Horror Movies 2 https://t.co/4W5skzhUEL https://t.co/6ziSncFh9o https://t.co/6CemvX8t3z', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 3, 'key': 'https://pbs.twimg.com/media/Ds8SX4kVsAEjatG.jpg', 'keyword': 'text,person,black and white,mammal,cartoon,font,human behavior,drawing,emotion,line', 'type': 'annotate', 'metadata': '{}', 'text': 'Heist https://t.co/pJc7tMXxHy https://t.co/SGHZ74v9IE https://t.co/hLxJTZmNw8', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 4, 'key': 'https://pbs.twimg.com/media/DtGuhfXU0AAXsQI.jpg', 'keyword': 'text,cartoon,person,font,black and white,human behavior,emotion,line,product,drawing', 'type': 'annotate', 'metadata': '{}', 'text': 'Popper https://t.co/vAjZnAxlfR https://t.co/ko1rUaUMbu https://t.co/RA89Finb8P', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 5, 'key': 'https://pbs.twimg.com/media/Dsiy7oQU0AUBNOJ.jpg', 'keyword': 'text,white,black,black and white,person,font,cartoon,line art,drawing,design', 'type': 'annotate', 'metadata': '{}', 'text': 'Update Your Address https://t.co/UOBodAheN4 https://t.co/qY0JtFfW1R https://t.co/YAhggz9CKB', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 6, 'key': 'https://pbs.twimg.com/media/DtRPr5dUwAAiIOA.jpg', 'keyword': 'text,person,font,black and white,cartoon,human behavior,drawing,line,diagram,paper', 'type': 'annotate', 'metadata': '{}', 'text': 'Alpha Centauri https://t.co/yJXD6jJz2M https://t.co/IUzDfu4sYF https://t.co/MNK8T8yMOF', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+5 results in total
+```
+
 ## Use within shell
 
-This library provides a shell access.
+This library provides a shell access. For demo you can [see it on asciinema](https://asciinema.org/a/214612).
 
 Examples first. I can get an annotated video like the demo above like:
 
@@ -142,22 +239,32 @@ Acutally you don't need to execute `download` before you execute the `video` com
 If you want to deep further, I highly suggest you use `-h` to look up the help.
 
 ```
-usage: TweetPI.py [-h] {list,download,video,annotate,annotatedvideo} ...
+usage: TweetPI.py [-h] [--version]
+                  {list,download,video,annotate,annotatedvideo,get_total_by_type,get_annotation_keywords_list,get_total_by_session_id,search_by_keyword,install_db}
+                  ...
 
 Tweet Photo Insight: Python library to get photos in Twitter feed, with a
 video and photo annotations.
 
 positional arguments:
-  {list,download,video,annotate,annotatedvideo}
+  {list,download,video,annotate,annotatedvideo,get_annotation_keywords_list,get_total_by_session_id,get_total_by_type,search_by_keyword,install_db}
                         .
     list                list images in Twitter feed
     download            download images in Twitter feed
     video               generate a video from images in Twitter feed
     annotate            get annotations of images in Twitter feed
     annotatedvideo      get annotated video of photos in Twitter feed
+    get_total_by_session_id
+                        get total by session_id in db
+    get_total_by_type   get total by type in db
+    get_annotation_keywords_list
+                        get annotation keywords list in db
+    search_by_keyword   search logs by keyword in db
+    install_db          search logs by keyword in db
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
 ```
 
 You can always use `-h` to get help information for a specific function. For reference, here they are (please consult with `-h` for up-to-date help info).

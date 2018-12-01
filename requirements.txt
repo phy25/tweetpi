@@ -1,3 +1,5 @@
 tweepy
 google-cloud-vision
 Pillow
+PyMySQL
+pymongo

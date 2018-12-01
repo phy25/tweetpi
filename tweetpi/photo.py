@@ -98,6 +98,8 @@ class Photo(Mapping):
                 return False
 
             self.annotation = self.parent.gvision_client.annotate_image(req)
+            self.parent.db_client.log(type="annotate", keyword=[a.description for a in self.annotation.label_annotations],
+                               key=self.remote_url, text=self.tweet_json['text'], metadata={})
 
         return self.annotation
 
@@ -152,10 +154,26 @@ class PhotoList(list):
                 requests.append(r)
 
         # request
-        resp = self.parent.gvision_client.batch_annotate_images(requests)
-        assert len(resp.responses) == len(photolist)
-        for r in resp.responses:
-            photolist.pop(0).annotation = r
+        while len(requests):
+            assert len(requests) == len(photolist)
+            resp = self.parent.gvision_client.batch_annotate_images(requests[0:16])
+            assert len(resp.responses) <= len(photolist)
+            completed_photolist = []
+            for r in resp.responses:
+                p = photolist.pop(0)
+                p.annotation = r
+                completed_photolist.append(p)
+            self.parent.db_client.batch_logs([
+                {
+                    "type":"annotate",
+                    "keyword": [a.description for a in p.annotation.label_annotations],
+                    "key":p.remote_url,
+                    "text":p.tweet_json['text'],
+                    "metadata":{}
+                } for p in completed_photolist
+            ])
+            completed_photolist = None
+            requests = requests[16:]
 
     def get_annotations(self):
         self.fetch_annotations()
@@ -165,13 +183,13 @@ class PhotoList(list):
         import warnings
         from tweetpi import video
         warnings.warn("Please use video.generate_video instead", DeprecationWarning)
-        return video.generate_video(self, *args, **kwargs)
+        return video.generate_video(self, *args, parent=self, **kwargs)
 
     def generate_annotated_video(self, *args, **kwargs):
         import warnings
         from tweetpi import video
         warnings.warn("Please use video.generate_annotated_video instead", DeprecationWarning)
-        return video.generate_annotated_video(self, *args, **kwargs)
+        return video.generate_annotated_video(self, *args, parent=self, **kwargs)
 
 
 class ImOp():
@@ -220,7 +238,7 @@ class ImOp():
 
     def save_as_temp(self, filename=None):
         if not filename:
-            filename = uuid.uuid4()+".jpg"
+            filename = str(uuid.uuid4())+".jpg"
         name = os.path.join(tempfile.gettempdir(), filename)
         self.im.save(name)
         return name
