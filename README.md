@@ -149,6 +149,50 @@ There are several functions in the shell for you to make use of the logs data.
 - `tweetpi.py get_total_by_session_id` get total by session_id in db
 - `tweetpi.py search_by_keyword KEYWORD` search logs by keyword in db
 
+Example:
+
+```
+$ tweetpi.py get_total_by_session_id
+                      Session ID    Count
+-------------------------------- --------
+     c218d8f8d25cb11a_1543630001        7
+     c218d8f8d25cb11a_1543628419        7
+$ tweetpi.py get_annotation_keywords_list
+                         Keyword    Count
+-------------------------------- --------
+                          person       10
+                 black and white       10
+                            text       10
+                         cartoon       10
+                            font       10
+                         drawing        8
+                            line        6
+                  human behavior        6
+                           black        4
+                           white        4
+                         emotion        4
+                          mammal        4
+                        line art        4
+                           paper        2
+                          design        2
+                         product        2
+                         diagram        2
+                            head        2
+$ tweetpi.py get_total_by_type
+            Type    Count
+---------------- --------
+        annotate       10
+           video        2
+    get_timeline        2
+$ tweetpi.py search_by_keyword person
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 2, 'key': 'https://pbs.twimg.com/media/DssdKgqVsAAXw0y.jpg', 'keyword': 'text,white,black,person,cartoon,black and white,mammal,line art,font,head', 'type': 'annotate', 'metadata': '{}', 'text': 'Horror Movies 2 https://t.co/4W5skzhUEL https://t.co/6ziSncFh9o https://t.co/6CemvX8t3z', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 3, 'key': 'https://pbs.twimg.com/media/Ds8SX4kVsAEjatG.jpg', 'keyword': 'text,person,black and white,mammal,cartoon,font,human behavior,drawing,emotion,line', 'type': 'annotate', 'metadata': '{}', 'text': 'Heist https://t.co/pJc7tMXxHy https://t.co/SGHZ74v9IE https://t.co/hLxJTZmNw8', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 4, 'key': 'https://pbs.twimg.com/media/DtGuhfXU0AAXsQI.jpg', 'keyword': 'text,cartoon,person,font,black and white,human behavior,emotion,line,product,drawing', 'type': 'annotate', 'metadata': '{}', 'text': 'Popper https://t.co/vAjZnAxlfR https://t.co/ko1rUaUMbu https://t.co/RA89Finb8P', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 5, 'key': 'https://pbs.twimg.com/media/Dsiy7oQU0AUBNOJ.jpg', 'keyword': 'text,white,black,black and white,person,font,cartoon,line art,drawing,design', 'type': 'annotate', 'metadata': '{}', 'text': 'Update Your Address https://t.co/UOBodAheN4 https://t.co/qY0JtFfW1R https://t.co/YAhggz9CKB', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+{'timestamp': datetime.datetime(2018, 11, 30, 11, 33, 20), 'id': 6, 'key': 'https://pbs.twimg.com/media/DtRPr5dUwAAiIOA.jpg', 'keyword': 'text,person,font,black and white,cartoon,human behavior,drawing,line,diagram,paper', 'type': 'annotate', 'metadata': '{}', 'text': 'Alpha Centauri https://t.co/yJXD6jJz2M https://t.co/IUzDfu4sYF https://t.co/MNK8T8yMOF', 'session_id': 'c218d8f8d25cb66f_1543645999'}
+5 results in total
+```
+
 ## Use within shell
 
 This library provides a shell access.

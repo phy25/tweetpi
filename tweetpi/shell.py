@@ -117,7 +117,7 @@ def shell_get_total_by_type(args):
             result = tpi.db_client.get_total_by_type()
             table = "{:>16} {:>8}"
             print(table.format("Type", "Count"))
-            print(table.format("="*16, "="*8))
+            print(table.format("-"*16, "-"*8))
             for i in result:
                 print(table.format(i["type"], i["count"]))
         else:
@@ -133,7 +133,7 @@ def shell_get_annotation_keywords_list(args):
             result = tpi.db_client.get_annotation_keywords_list(limit=args.limit)
             table = "{:>32} {:>8}"
             print(table.format("Keyword", "Count"))
-            print(table.format("="*32, "="*8))
+            print(table.format("-"*32, "-"*8))
             for i in result:
                 print(table.format(i["keyword"], i["count"]))
         else:
@@ -149,7 +149,7 @@ def shell_get_total_by_session_id(args):
             result = tpi.db_client.get_total_by_session_id(limit=args.limit)
             table = "{:>32} {:>8}"
             print(table.format("Session ID", "Count"))
-            print(table.format("="*32, "="*8))
+            print(table.format("-"*32, "-"*8))
             for i in result:
                 print(table.format(i["session_id"], i["count"]))
         else:
