@@ -14,6 +14,7 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 - [Breaking changes](#breaking-changes)
 - [Install](#install)
 - [Obtain service tokens](#obtain-service-tokens)
+- [Database config](#database-config)
 - [Use within shell](#use-within-shell)
 - [Use as a library](#use-as-a-library)
 - [Design](#design)
@@ -45,7 +46,9 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 
 ### Ubuntu
 
-This library is currently tested within Ubuntu. You need to install Python (tested with Python 3.5, 3.7.0 now), ffmpeg, and respective Python library.
+This library is currently tested within Ubuntu. You need to have Python installed (tested with Python 3.5, 3.7.0 now) first.
+
+Git will be used to fetch code from here. The following bash command also installs ffmpeg, and respective Python packages.
 
 ```shell
 $ git clone https://github.com/phy25/tweetpi.git
@@ -56,14 +59,16 @@ $ pip install -r requirements.txt --user
 
 ### Windows
 
-It's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10); it's the same as on Ubuntu. But if you need to...
+It's more convenient if you are using Windows 10 + [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10); it's the same as on Ubuntu.
+
+However, if you really need to install this in native Windows...
 
 ```shell
 > git clone https://github.com/phy25/tweetpi.git
 > cd tweetpi
 > pip install -r requirements.txt --user
 ```
-And finally, **grab an copy of `ffmpeg.exe` inside `tweetpi` folder** (You can [download here](https://ffmpeg.zeranoe.com/builds/)), or ensure `ffmpeg` is in PATH and thus is execuable from the shell.
+And finally, **grab an copy of `ffmpeg.exe` and put it inside `tweetpi` folder** (You can [download here](https://ffmpeg.zeranoe.com/builds/)), or ensure `ffmpeg` is in PATH and thus is execuable from the shell.
 
 ## Obtain service tokens
 
@@ -105,6 +110,27 @@ Follow https://cloud.google.com/vision/docs/quickstart#set_up_your_project (only
 Then you need to obtain a service account key (in JSON). If you don't have one, go to https://console.cloud.google.com/apis/credentials/serviceaccountkey, follow the guide (you don't need to choose a role for using TweetPI), choose JSON, and download the `.json` file to the TweetPI folder.
 
 Currently TweetPI only supports JSON service account key. You can point to the JSON file by filling `options.google_key_json` (relative to working directory, e.g. `My Project f92e3234.json`).
+
+## Database config
+
+Database in this project is used as a logging mechanism. There are two database config:
+
+- `db_enable` receives True/False.
+    - If it is False, nothing happens regarding database.
+    - If it is True but db_uri is empty, each time database will be written, it will print data to stderr instead.
+- `db_uri` is a database URI (see below).
+
+Currently we provide two types of database support: MongoDB, and MySQL (MariaDB).
+
+### MongoDB
+
+`db_uri` can be set like "mongodb://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mongodb://demouser:password@localhost/demodb".
+
+### MySQL
+
+`db_uri` can be set like "mysql://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mysql://demouser:password@localhost/demodb". You can replace mysql with mysql+pymysql.
+
+Before you start use it please run `tweetpi.py install_db` in shell or `tweetpiInstance.dbclient.install()`, or it will report errors.
 
 ## Use within shell
 

@@ -32,7 +32,7 @@ def init(db_uri):
         else:
             raise ImportError("pymongo is required to interact with the db")
     if not db_uri:
-        return NoDBClient()
+        return NoDBClient(debug=True)
 
     raise ValueError("Unknown database URI")
 
@@ -217,6 +217,12 @@ class MySQLDBClient(DBClientAbstract):
         pass
 
 class NoDBClient(DBClientAbstract):
+    debug = False
+
+    def __init__(self, uri=None, manual_connection=False, debug=False):
+        super().__init__(uri=uri, manual_connection=manual_connection)
+        self.debug = debug
+
     def connect(self):
         pass
 
@@ -232,7 +238,8 @@ class NoDBClient(DBClientAbstract):
     def _log(self, type, keyword, key, text="", metadata={}):
         if isinstance(keyword, str):
             keyword = [keyword]
-        print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata), file=sys.stderr)
+        if self.debug:
+            print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata), file=sys.stderr)
 
     def batch_logs(self, data):
         for d in data:

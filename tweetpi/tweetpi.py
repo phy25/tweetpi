@@ -45,7 +45,7 @@ class TweetPI:
         if self.db_enable:
             self.db_client = database.init(self.db_uri)
         else:
-            self.db_client = database.NoDBClient()
+            self.db_client = database.NoDBClient(debug=False)
 
     def get_timeline(self, username, page, limit, order_latest=False):
         self.db_client.log(type="get_timeline", keyword=username, key=username, text="", metadata={"page":page, "limit":limit})
