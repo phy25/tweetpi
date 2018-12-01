@@ -119,7 +119,7 @@ def shell_get_total_by_type(args):
             print(table.format("Type", "Count"))
             print(table.format("="*16, "="*8))
             for i in result:
-                print(table.format(i["_id"], i["count"]))
+                print(table.format(i["type"], i["count"]))
         else:
             sys.exit(1)
     except Exception:
@@ -135,7 +135,23 @@ def shell_get_annotation_keywords_list(args):
             print(table.format("Keyword", "Count"))
             print(table.format("="*32, "="*8))
             for i in result:
-                print(table.format(i["_id"], i["count"]))
+                print(table.format(i["keyword"], i["count"]))
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
+def shell_get_total_by_session_id(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            result = tpi.db_client.get_total_by_session_id(limit=args.limit)
+            table = "{:>32} {:>8}"
+            print(table.format("Session ID", "Count"))
+            print(table.format("="*32, "="*8))
+            for i in result:
+                print(table.format(i["session_id"], i["count"]))
         else:
             sys.exit(1)
     except Exception:
@@ -155,6 +171,19 @@ def shell_search_by_keyword(args):
     except Exception:
         shell_print_exception()
         sys.exit(2)
+
+
+def shell_install_db(args):
+    tpi = shell_init_lib(args)
+    try:
+        if tpi.db_client:
+            tpi.db_client.install()
+        else:
+            sys.exit(1)
+    except Exception:
+        shell_print_exception()
+        sys.exit(2)
+
 
 def main(argv=None):
     import argparse
@@ -213,10 +242,19 @@ def main(argv=None):
     parser_get_annotation_keywords_list.add_argument('--limit', help="results limit", type=int, default=20)
     parser_get_annotation_keywords_list.set_defaults(func=shell_get_annotation_keywords_list)
 
+    parser_get_total_by_session_id = subparsers.add_parser('get_total_by_session_id', help='get total by session_id in db')
+    parser_get_total_by_session_id.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_total_by_session_id.add_argument('--limit', help="results limit", type=int, default=20)
+    parser_get_total_by_session_id.set_defaults(func=shell_get_total_by_session_id)
+
     parser_search_by_keyword = subparsers.add_parser('search_by_keyword', help='search logs by keyword in db')
     parser_search_by_keyword.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_search_by_keyword.add_argument('KEYWORD', help="word searched in keyword field")
     parser_search_by_keyword.set_defaults(func=shell_search_by_keyword)
+
+    parser_install_db = subparsers.add_parser('install_db', help='search logs by keyword in db')
+    parser_install_db.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_install_db.set_defaults(func=shell_install_db)
 
 
     if len(argv) == 0:
