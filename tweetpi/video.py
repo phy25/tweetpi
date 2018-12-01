@@ -8,6 +8,9 @@ from PIL import ImageFont
 def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None):
     fullpath = os.path.abspath(name)
 
+    if not len(files):
+        raise Exception("No images available for video creation")
+
     # generate concat files
     # https://trac.ffmpeg.org/wiki/Slideshow
     concat_path = os.path.join(tempfile.gettempdir(), name+".txt")

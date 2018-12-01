@@ -99,7 +99,7 @@ class Photo(Mapping):
 
             self.annotation = self.parent.gvision_client.annotate_image(req)
             self.parent.db_client.log(type="annotate", keyword=[a.description for a in self.annotation.label_annotations],
-                               key=self.remote_url, text=self.tweet_json.text, metadata={})
+                               key=self.remote_url, text=self.tweet_json['text'], metadata={})
 
         return self.annotation
 
@@ -154,10 +154,16 @@ class PhotoList(list):
                 requests.append(r)
 
         # request
-        resp = self.parent.gvision_client.batch_annotate_images(requests)
-        assert len(resp.responses) == len(photolist)
-        for r in resp.responses:
-            photolist.pop(0).annotation = r
+        while len(requests):
+            assert len(requests) == len(photolist)
+            resp = self.parent.gvision_client.batch_annotate_images(requests[0:16])
+            assert len(resp.responses) <= len(photolist)
+            for r in resp.responses:
+                p = photolist.pop(0)
+                p.annotation = r
+                self.parent.db_client.log(type="annotate", keyword=[a.description for a in r.label_annotations],
+                                          key=p.remote_url, text=p.tweet_json['text'], metadata={})
+            requests = requests[16:]
 
     def get_annotations(self):
         self.fetch_annotations()
@@ -222,7 +228,7 @@ class ImOp():
 
     def save_as_temp(self, filename=None):
         if not filename:
-            filename = uuid.uuid4()+".jpg"
+            filename = str(uuid.uuid4())+".jpg"
         name = os.path.join(tempfile.gettempdir(), filename)
         self.im.save(name)
         return name

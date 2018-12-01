@@ -60,6 +60,7 @@ class TweetPI:
             try:
                 for m in tweet.extended_entities['media']:
                     if m['type'] == 'photo':
+                        m['text'] = tweet.full_text
                         photos.append(Photo(parent=self, tweet_json=m))
             except AttributeError:
                 pass

@@ -53,7 +53,7 @@ class DBClientAbstract:
         sb.append(platform.system())
         sb.append(str(uuid.getnode())) # MAC address
         text = '#'.join(sb)
-        return hashlib.md5(text).hexdigest()[0:16]
+        return hashlib.md5(text.encode('utf-8')).hexdigest()[0:16]
 
     @abstractmethod
     def install(self):
@@ -165,6 +165,8 @@ class NoDBClient(DBClientAbstract):
         self._log(type, keyword, key, text, metadata)
 
     def _log(self, type, keyword, key, text="", metadata={}):
+        if isinstance(keyword, str):
+            keyword = [keyword]
         print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata))
         pass
 
