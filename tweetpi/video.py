@@ -6,7 +6,10 @@ from PIL import ImageFont
 
 
 def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None, photos_reference=None):
-    fullpath = os.path.abspath(name)
+    if parent:
+        fullpath = os.path.abspath(name)
+    else:
+        fullpath = os.path.join(parent.local_folder, name)
 
     if not len(files):
         raise Exception("No images available for video creation")
@@ -31,7 +34,7 @@ def _generate_video_from_path(files, name, size="1280x720", shell=False, interva
         if parent:
             if photos_reference:
                 parent.db_client.log(type="video", keyword="",
-                                     key=name, text="", metadata={"photos":photos_reference})
+                                     key=name, text="", metadata={"photos":[i.remote_url for i in photos_reference]})
             else:
                 parent.db_client.log(type="video", keyword="",
                                      key=name, text="", metadata={"files":files})
@@ -61,7 +64,7 @@ def generate_video(photos, name=None, size="1280x720", shell=False, interval=3, 
 
 
 def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3,
-                             font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40,  parent=None):
+                             font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40, parent=None):
     if not name:
         name = photos.source+".mp4"
     sizes = size.split('x')
@@ -72,7 +75,11 @@ def generate_annotated_video(photos, name=None, size="1280x720", shell=False, in
 
     photos.fetch_annotations()
     files = []
-    font = ImageFont.truetype(font_file, size=font_size)
+    if parent:
+        conf_path = parent.conf_folder
+    else:
+        conf_path = ""
+    font = ImageFont.truetype(os.path.join(conf_path, font_file), size=font_size)
 
     for p in photos:
         message = ", ".join([l.description for l in p.annotation.label_annotations])

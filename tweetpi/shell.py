@@ -1,12 +1,13 @@
 import json
 import sys
+import os
 from tweetpi import TweetPI, video, __version__ as tweetpi_version
 
 def shell_print_exception(error_name=None):
     import traceback
     if error_name:
         print('=== {} ==='.format(error_name))
-    traceback.print_exc(limit=1)
+    traceback.print_exc(limit=2)
 
 def shell_init_lib(args):
     o = {}
@@ -20,6 +21,8 @@ def shell_init_lib(args):
         try:
             with open(options_str, "r") as fp:
                 o = json.load(fp)
+            if not "conf_folder" in o:
+                o["conf_folder"] = os.path.dirname(os.path.abspath(options_str))
         except IOError:
             o = json.loads(options_str)
     except Exception:
@@ -105,6 +108,7 @@ def shell_annotatedvideo(args):
     except Exception:
         shell_print_exception()
         sys.exit(2)
+
 
 def main(argv=None):
     import argparse

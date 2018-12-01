@@ -1,6 +1,7 @@
 import tweepy
 
 from tweetpi import Photo, PhotoList, database
+import os
 
 class TweetPI:
     twitter_consumer_key = None
@@ -9,6 +10,7 @@ class TweetPI:
     twitter_access_secret = None
     google_key_json = None
     local_folder = None
+    conf_folder = None
     twitter_api = None
     gvision_client = None
     db_enable = False
@@ -17,7 +19,7 @@ class TweetPI:
 
 
     def __init__(self, options):
-        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder", "_db_enable", "_db_uri"]
+        keys = ["twitter_consumer_key", "twitter_consumer_secret", "twitter_access_token", "twitter_access_secret", "google_key_json", "_local_folder", "_conf_folder", "_db_enable", "_db_uri"]
         if type(options) == dict:
             for k in keys:
                 optional = k.startswith("_")
@@ -34,7 +36,7 @@ class TweetPI:
 
         # Init Google Vision API
         from google.oauth2 import service_account
-        credentials = service_account.Credentials.from_service_account_file(self.google_key_json)
+        credentials = service_account.Credentials.from_service_account_file(os.path.join(self.conf_folder, self.google_key_json))
         # scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/cloud-platform'])
         from google.cloud import vision
         self.gvision_client = vision.ImageAnnotatorClient(credentials=credentials)
