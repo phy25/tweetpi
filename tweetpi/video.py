@@ -5,7 +5,7 @@ import subprocess
 from PIL import ImageFont
 
 
-def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None):
+def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None, photos_reference=None):
     fullpath = os.path.abspath(name)
 
     if not len(files):
@@ -29,8 +29,12 @@ def _generate_video_from_path(files, name, size="1280x720", shell=False, interva
         for f in files:
             os.unlink(f)
         if parent:
-            parent.db_client.log(type="video", keyword="",
-                                 key=name, text="", metadata={"files":files})
+            if photos_reference:
+                parent.db_client.log(type="video", keyword="",
+                                     key=name, text="", metadata={"photos":photos_reference})
+            else:
+                parent.db_client.log(type="video", keyword="",
+                                     key=name, text="", metadata={"files":files})
 
     return fullpath
 
@@ -53,7 +57,7 @@ def generate_video(photos, name=None, size="1280x720", shell=False, interval=3, 
         im = ImOp(p).resize(width=int(sizes[0]), height=int(sizes[1]))
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval, parent=parent)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent, photos_reference=photos)
 
 
 def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3,
@@ -76,4 +80,4 @@ def generate_annotated_video(photos, name=None, size="1280x720", shell=False, in
         im.annotate(message, font, font_size, font_color)
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval, parent=parent)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent, photos_reference=photos)
