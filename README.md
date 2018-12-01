@@ -10,7 +10,6 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 
 ## Contents
 
-- New in upcoming v1.0
 - [Breaking changes](#breaking-changes)
 - [Install](#install)
 - [Obtain service tokens](#obtain-service-tokens)
@@ -21,14 +20,16 @@ Old Agile Scrum board (with sprints): https://github.com/phy25/tweetpi/projects/
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
-## New in upcoming v1.0
+## Breaking changes
+
+## v1.1
+
+We completed the following new features. If you don't want to use it, just keep `db_enable` config to None or False.
 
 - Do two database implementations with MySQL and MongoDB
 - Organize detail information of every transaction the user may run using your system, and store all relevant information for everytime a user uses your application
 - API and program to: search for certain words and retrieve which user/session that has this work in it. For example, search for ‘basketball”, and get results of which user had Basketball in their sessions
 - API and program to: show collective statistics about overall usage of the system. For example: number of images per feed, most popular descriptors
-
-## Breaking changes
 
 ### v1.0
 
@@ -126,11 +127,27 @@ Currently we provide two types of database support: MongoDB, and MySQL (MariaDB)
 
 `db_uri` can be set like "mongodb://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mongodb://demouser:password@localhost/demodb".
 
+You don't need to run `tweetpi.py install_db` before you start using it.
+
+If you need a temporary MongoDB server, I would recommend you to sign up one for free at https://mlab.com/.
+
 ### MySQL
 
-`db_uri` can be set like "mysql://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mysql://demouser:password@localhost/demodb". You can replace mysql with mysql+pymysql.
+`db_uri` can be set like "mysql://USERNAME:PASSWORD@DOMAIN:PORT/DATABASE". e.g. "mysql://demouser:password@localhost/demodb". You can replace mysql with mysql+pymysql. For MariaDB, please still use mysql as the protocal name.
 
-Before you start use it please run `tweetpi.py install_db` in shell or `tweetpiInstance.dbclient.install()`, or it will report errors.
+Before you start using it please run `tweetpi.py install_db` in shell or `tweetpiInstance.dbclient.install()` to create approriate tables in the database, or it will report errors.
+
+If you need a temporary MySQL/MariaDB server (portable), you can install XAMPP's portable server at https://www.apachefriends.org/.
+
+### Query tools
+
+There are several functions in the shell for you to make use of the logs data.
+
+- `tweetpi.py install_db` install database tables if necessary
+- `tweetpi.py get_annotation_keywords_list` get annotation keywords list in db
+- `tweetpi.py get_total_by_type` get total by type in db
+- `tweetpi.py get_total_by_session_id` get total by session_id in db
+- `tweetpi.py search_by_keyword KEYWORD` search logs by keyword in db
 
 ## Use within shell
 
@@ -176,22 +193,32 @@ Acutally you don't need to execute `download` before you execute the `video` com
 If you want to deep further, I highly suggest you use `-h` to look up the help.
 
 ```
-usage: TweetPI.py [-h] {list,download,video,annotate,annotatedvideo} ...
+usage: TweetPI.py [-h] [--version]
+                  {list,download,video,annotate,annotatedvideo,get_total_by_type,get_annotation_keywords_list,get_total_by_session_id,search_by_keyword,install_db}
+                  ...
 
 Tweet Photo Insight: Python library to get photos in Twitter feed, with a
 video and photo annotations.
 
 positional arguments:
-  {list,download,video,annotate,annotatedvideo}
+  {list,download,video,annotate,annotatedvideo,get_annotation_keywords_list,get_total_by_session_id,get_total_by_type,search_by_keyword,install_db}
                         .
     list                list images in Twitter feed
     download            download images in Twitter feed
     video               generate a video from images in Twitter feed
     annotate            get annotations of images in Twitter feed
     annotatedvideo      get annotated video of photos in Twitter feed
+    get_total_by_session_id
+                        get total by session_id in db
+    get_total_by_type   get total by type in db
+    get_annotation_keywords_list
+                        get annotation keywords list in db
+    search_by_keyword   search logs by keyword in db
+    install_db          search logs by keyword in db
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
 ```
 
 You can always use `-h` to get help information for a specific function. For reference, here they are (please consult with `-h` for up-to-date help info).

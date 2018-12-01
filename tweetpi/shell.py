@@ -233,10 +233,6 @@ def main(argv=None):
     parser_annotatedvideo.add_argument('--fontsize', help="Optional font size, default: 40", type=int, default=40)
     parser_annotatedvideo.set_defaults(func=shell_annotatedvideo)
 
-    parser_get_total_by_type = subparsers.add_parser('get_total_by_type', help='get total by type in db')
-    parser_get_total_by_type.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
-    parser_get_total_by_type.set_defaults(func=shell_get_total_by_type)
-
     parser_get_annotation_keywords_list = subparsers.add_parser('get_annotation_keywords_list', help='get annotation keywords list in db')
     parser_get_annotation_keywords_list.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_get_annotation_keywords_list.add_argument('--limit', help="results limit", type=int, default=20)
@@ -246,6 +242,10 @@ def main(argv=None):
     parser_get_total_by_session_id.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
     parser_get_total_by_session_id.add_argument('--limit', help="results limit", type=int, default=20)
     parser_get_total_by_session_id.set_defaults(func=shell_get_total_by_session_id)
+
+    parser_get_total_by_type = subparsers.add_parser('get_total_by_type', help='get total by type in db')
+    parser_get_total_by_type.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")
+    parser_get_total_by_type.set_defaults(func=shell_get_total_by_type)
 
     parser_search_by_keyword = subparsers.add_parser('search_by_keyword', help='search logs by keyword in db')
     parser_search_by_keyword.add_argument('--options', help="Init config for TweetPI library (JSON file path or JSON string)")

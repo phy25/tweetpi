@@ -122,7 +122,7 @@ class MongoDBClient(DBClientAbstract):
 
     def install(self):
         # logs
-        pass
+        print("MongoDB doesn't need to be initilized")
 
     def log(self, type, keyword, key, text="", metadata={}):
         with self.get_connection() as conn:
@@ -307,7 +307,7 @@ class NoDBClient(DBClientAbstract):
         pass
 
     def install(self):
-        pass
+        print("There is no database in use, thus it doesn't need to be initilized")
 
     def log(self, type, keyword, key, text="", metadata={}):
         self._log(type, keyword, key, text, metadata)
