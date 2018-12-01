@@ -135,14 +135,26 @@ class MongoDBClient(DBClientAbstract):
 
     def search_by_keyword(self, keyword):
         with self.get_connection() as conn:
-            return conn[self.db_name]["logs"].find({"keyword": {"$in": ["Mike"]}})
+            return list(conn[self.db_name]["logs"].find({"keyword": {"$in": [keyword]}}))
 
     def get_total_by_type(self):
         with self.get_connection() as conn:
-            return list(conn[self.db_name]["logs"].aggregate([{"$group": {"_id": "$type", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}]))
+            return list(
+                conn[self.db_name]["logs"].aggregate([
+                    {"$group": {"_id": "$type", "count": {"$sum": 1}}},
+                    {"$sort": {"count": -1}}
+                ]))
 
     def get_annotation_keywords_list(self, limit=20):
-        return []
+        with self.get_connection() as conn:
+            return list(
+                conn[self.db_name]["logs"].aggregate([
+                    {"$match": {"type": "annotate"}},
+                    {"$unwind": "$keyword"},
+                    {"$group": {"_id": "$keyword", "count": {"$sum": 1}}},
+                    {"$sort": {"count": -1}},
+                    {"$limit": limit}
+                ]))
 
 class MySQLDBClient(DBClientAbstract):
     conn = None
