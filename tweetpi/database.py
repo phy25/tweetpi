@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import uuid
 import hashlib
 import platform
+import sys
 from contextlib import contextmanager
 
 try:
@@ -29,6 +30,8 @@ def init(db_uri):
             return MongoDBClient(db_uri)
         else:
             raise ImportError("pymongo is required to interact with the db")
+    if not db_uri:
+        return NoDBClient()
 
     raise ValueError("Unknown database URI")
 
@@ -89,13 +92,60 @@ class DBClientAbstract:
         pass
 
 class MongoDBClient(DBClientAbstract):
-    def __init__(self, uri, manual_connection=False):
-        super().__init__(uri, manual_connection)
+    conn = None
+    db_name = "admin"
+
+    def connect(self):
+        self.conn = pymongo.mongo_client.MongoClient(self.uri)
+        URL_CONFIG = urlparse(self.uri)
+        self.db_name = URL_CONFIG.path[1:]
+
+    def close(self):
+        self.conn.close()
+        self.conn = None
+
+    @contextmanager
+    def get_connection(self, close=True):
+        if not self.conn:
+            self.connect()
+        try:
+            yield self.conn
+        finally:
+            if close:
+                self.close()
+
+    def install(self):
+        # logs
+        pass
+
+    def log(self, type, keyword, key, text="", metadata={}):
+        with self.get_connection() as conn:
+            self._log(conn, type, keyword, key, text, metadata)
+
+    def _log(self, conn, type, keyword, key, text="", metadata={}):
+        if isinstance(keyword, str):
+            keyword = [keyword]
+        doc = {"type": type, "keyword": keyword, "key": key, "text": text, "metadata": metadata, "session_id": self.session_id}
+        conn[self.db_name]["logs"].insert_one(doc)
+
+    def batch_logs(self, data):
+        with self.get_connection() as conn:
+            for d in data:
+                self._log(conn, **d)
+
+    def search_by_keyword(self, keyword):
+        return []
+
+    def get_total_by_type(self):
+        return {}
+
+    def get_annotation_keywords_list(self, limit=20):
+        return []
 
 class MySQLDBClient(DBClientAbstract):
     conn = None
 
-    def connect(self):
+    def connect(self, autocommit=True):
         URL_CONFIG = urlparse(self.uri)
 
         self.conn       = pymysql.connect(
@@ -105,7 +155,7 @@ class MySQLDBClient(DBClientAbstract):
             password    = URL_CONFIG.password,
             db          = URL_CONFIG.path[1:],
             charset     = 'utf8mb4',
-            autocommit  = True,
+            autocommit  = autocommit,
             cursorclass = pymysql.cursors.DictCursor
         )
 
@@ -114,7 +164,7 @@ class MySQLDBClient(DBClientAbstract):
         self.conn = None
 
     @contextmanager
-    def get_connection(self):
+    def get_connection(self, close=True):
         if not self.conn:
             self.connect()
         try:
@@ -125,7 +175,8 @@ class MySQLDBClient(DBClientAbstract):
         else:
             self.conn.commit()
         finally:
-            self.close()
+            if close:
+                self.close()
 
     def install(self):
         pass
@@ -167,8 +218,7 @@ class NoDBClient(DBClientAbstract):
     def _log(self, type, keyword, key, text="", metadata={}):
         if isinstance(keyword, str):
             keyword = [keyword]
-        print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata))
-        pass
+        print("{} {} {} {} {}".format(type, ",".join(keyword), key, text, metadata), file=sys.stderr)
 
     def batch_logs(self, data):
         for d in data:

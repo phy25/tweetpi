@@ -158,11 +158,21 @@ class PhotoList(list):
             assert len(requests) == len(photolist)
             resp = self.parent.gvision_client.batch_annotate_images(requests[0:16])
             assert len(resp.responses) <= len(photolist)
+            completed_photolist = []
             for r in resp.responses:
                 p = photolist.pop(0)
                 p.annotation = r
-                self.parent.db_client.log(type="annotate", keyword=[a.description for a in r.label_annotations],
-                                          key=p.remote_url, text=p.tweet_json['text'], metadata={})
+                completed_photolist.append(p)
+            self.parent.db_client.batch_logs([
+                {
+                    "type":"annotate",
+                    "keyword": [a.description for a in p.annotation.label_annotations],
+                    "key":p.remote_url,
+                    "text":p.tweet_json['text'],
+                    "metadata":{}
+                } for p in completed_photolist
+            ])
+            completed_photolist = None
             requests = requests[16:]
 
     def get_annotations(self):
