@@ -98,6 +98,8 @@ class Photo(Mapping):
                 return False
 
             self.annotation = self.parent.gvision_client.annotate_image(req)
+            self.parent.db_client.log(type="annotate", keyword=[a.description for a in self.annotation.label_annotations],
+                               key=self.remote_url, text=self.tweet_json.text, metadata={})
 
         return self.annotation
 
@@ -165,13 +167,13 @@ class PhotoList(list):
         import warnings
         from tweetpi import video
         warnings.warn("Please use video.generate_video instead", DeprecationWarning)
-        return video.generate_video(self, *args, **kwargs)
+        return video.generate_video(self, *args, parent=self, **kwargs)
 
     def generate_annotated_video(self, *args, **kwargs):
         import warnings
         from tweetpi import video
         warnings.warn("Please use video.generate_annotated_video instead", DeprecationWarning)
-        return video.generate_annotated_video(self, *args, **kwargs)
+        return video.generate_annotated_video(self, *args, parent=self, **kwargs)
 
 
 class ImOp():

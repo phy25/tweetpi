@@ -5,7 +5,7 @@ import subprocess
 from PIL import ImageFont
 
 
-def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3):
+def _generate_video_from_path(files, name, size="1280x720", shell=False, interval=3, parent=None):
     fullpath = os.path.abspath(name)
 
     # generate concat files
@@ -25,11 +25,14 @@ def _generate_video_from_path(files, name, size="1280x720", shell=False, interva
         os.unlink(concat_path)
         for f in files:
             os.unlink(f)
+        if parent:
+            parent.db_client.log(type="video", keyword="",
+                                 key=name, text="", metadata={"files":files})
 
     return fullpath
 
 
-def generate_video(photos, name=None, size="1280x720", shell=False, interval=3):
+def generate_video(photos, name=None, size="1280x720", shell=False, interval=3, parent=None):
     """
     Generate a simple video
     photos: PhotoList
@@ -47,10 +50,11 @@ def generate_video(photos, name=None, size="1280x720", shell=False, interval=3):
         im = ImOp(p).resize(width=int(sizes[0]), height=int(sizes[1]))
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent)
 
 
-def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3, font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40):
+def generate_annotated_video(photos, name=None, size="1280x720", shell=False, interval=3,
+                             font_file="Roboto-Regular.ttf", font_color="rgb(255, 0, 0)", font_size=40,  parent=None):
     if not name:
         name = photos.source+".mp4"
     sizes = size.split('x')
@@ -69,4 +73,4 @@ def generate_annotated_video(photos, name=None, size="1280x720", shell=False, in
         im.annotate(message, font, font_size, font_color)
         files.append(im.save_as_temp(p.name))
 
-    return _generate_video_from_path(files, name, size, shell, interval)
+    return _generate_video_from_path(files, name, size, shell, interval, parent=parent)

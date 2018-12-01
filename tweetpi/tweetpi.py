@@ -46,6 +46,7 @@ class TweetPI:
             self.db_client = database.NoDBClient()
 
     def get_timeline(self, username, page, limit, order_latest=False):
+        self.db_client.log(type="get_timeline", keyword=username, key=username, text="", metadata={"page":page, "limit":limit})
         if username == "__home__":
             tweets = self.twitter_api.home_timeline(
                 count=limit, page=page, trim_user=True, tweet_mode="extended")

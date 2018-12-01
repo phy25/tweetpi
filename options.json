@@ -3,5 +3,7 @@
     "twitter_consumer_secret":"CHANGEME",
     "twitter_access_token":"CHANGEME",
     "twitter_access_secret":"CHANGEME",
-    "google_key_json":"gapi.json"
+    "google_key_json":"gapi.json",
+    "db_enable":false,
+    "db_uri":"mysql://test:test@localhost/"
 }

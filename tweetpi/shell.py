@@ -64,7 +64,7 @@ def shell_video(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = video.generate_video(photos=photolist, name=args.output, size=size, shell=True, interval=args.interval)
+            result = video.generate_video(photos=photolist, name=args.output, size=size, shell=True, interval=args.interval, parent=tpi)
             print(result)
         else:
             sys.exit(1)
@@ -97,7 +97,8 @@ def shell_annotatedvideo(args):
                 print("Size should be like 1280x720", file=sys.stderr)
                 sys.exit(1)
             photolist = tpi.get_timeline(username=args.timeline, page=1, limit=args.limit)
-            result = video.generate_annotated_video(photos=photolist, name=args.output, size=size, shell=True, font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize)
+            result = video.generate_annotated_video(photos=photolist, name=args.output, size=size, shell=True,
+                                                    font_color=args.fontcolor, font_file=args.fontfile, interval=args.interval, font_size=args.fontsize, parent=tpi)
             print(result)
         else:
             sys.exit(1)
